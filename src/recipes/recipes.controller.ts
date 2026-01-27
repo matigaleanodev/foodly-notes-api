@@ -20,4 +20,14 @@ export class RecipesController {
     const safeLang: Lang = lang === 'es' ? 'es' : 'en';
     return this.recipesService.getRecipeDetails(id, safeLang);
   }
+
+  @Get(':id/similar')
+  getSimilarRecipes(@Param('id', ParseIntPipe) id: number) {
+    return this.recipesService.getSimilarRecipe(id);
+  }
+
+  @Get()
+  getAllRecipes() {
+    return this.recipesService.getAllRecipes();
+  }
 }

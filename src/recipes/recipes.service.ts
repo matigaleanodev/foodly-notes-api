@@ -97,9 +97,23 @@ export class RecipesService {
     };
   }
 
-  getSimilarRecipe(sourceId: number, lang: Lang) {
-    return { sourceId, lang };
+  async getSimilarRecipe(sourceId: number) {
+    const similar = await this.spoonacularService.getSimilarRecipes(sourceId);
+
+    return similar.map((recipe) => ({
+      sourceId: recipe.id,
+      title: recipe.title,
+      image: `https://img.spoonacular.com/recipes/${recipe.id}-556x370.${recipe.imageType}`,
+    }));
   }
 
-  getAllRecipes() {}
+  async getAllRecipes() {
+    const recipes = await this.recipeModel.find().exec();
+
+    return recipes.map((recipe) => ({
+      sourceId: recipe.sourceId,
+      title: recipe.base.title,
+      image: recipe.meta.image,
+    }));
+  }
 }

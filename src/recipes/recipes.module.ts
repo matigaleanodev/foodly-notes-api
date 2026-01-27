@@ -6,6 +6,8 @@ import { Recipe, RecipeSchema } from './schemas/recipe.schema';
 import { DailyRecipe, DailyRecipeSchema } from './schemas/daily-recipe.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
 import { HttpModule } from '@nestjs/axios';
+import { TranslationService } from './translation/translation.service';
+import { AzureTranslationService } from './translation/azure-translation.service';
 
 @Module({
   imports: [
@@ -22,6 +24,11 @@ import { HttpModule } from '@nestjs/axios';
     HttpModule,
   ],
   controllers: [RecipesController],
-  providers: [RecipesService, SpoonacularService],
+  providers: [
+    RecipesService,
+    SpoonacularService,
+    TranslationService,
+    AzureTranslationService,
+  ],
 })
 export class RecipesModule {}

@@ -6,7 +6,7 @@ export type RecipeDocument = HydratedDocument<Recipe>;
 @Schema({ timestamps: true })
 export class Recipe {
   @Prop({ required: true, index: true })
-  sourceId: number; // id de Spoonacular
+  sourceId: number;
 
   @Prop({ default: 'spoonacular' })
   source: string;
@@ -18,7 +18,17 @@ export class Recipe {
     type: {
       title: String,
       summary: String,
-      instructions: String,
+      instructions: [
+        {
+          name: String,
+          steps: [
+            {
+              number: Number,
+              text: String,
+            },
+          ],
+        },
+      ],
       ingredients: [
         {
           id: Number,
@@ -35,7 +45,13 @@ export class Recipe {
   base: {
     title: string;
     summary: string;
-    instructions: string;
+    instructions: {
+      name: string;
+      steps: {
+        number: number;
+        text: string;
+      }[];
+    }[];
     ingredients: {
       id: number;
       name: string;
@@ -73,7 +89,13 @@ export class Recipe {
     [lang: string]: {
       title: string;
       summary: string;
-      instructions: string;
+      instructions: {
+        name: string;
+        steps: {
+          number: number;
+          text: string;
+        }[];
+      }[];
       ingredients: {
         id: number;
         name: string;

@@ -4,6 +4,8 @@ import { RecipesService } from './recipes.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Recipe, RecipeSchema } from './schemas/recipe.schema';
 import { DailyRecipe, DailyRecipeSchema } from './schemas/daily-recipe.schema';
+import { SpoonacularService } from './spoonacular/spoonacular.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -17,8 +19,9 @@ import { DailyRecipe, DailyRecipeSchema } from './schemas/daily-recipe.schema';
         schema: RecipeSchema,
       },
     ]),
+    HttpModule,
   ],
   controllers: [RecipesController],
-  providers: [RecipesService],
+  providers: [RecipesService, SpoonacularService],
 })
 export class RecipesModule {}

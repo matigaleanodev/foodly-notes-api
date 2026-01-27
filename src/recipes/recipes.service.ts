@@ -7,12 +7,15 @@ import {
   DailyRecipeDocument,
 } from './schemas/daily-recipe.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
+import { Recipe, RecipeDocument } from './schemas/recipe.schema';
 
 @Injectable()
 export class RecipesService {
   constructor(
     @InjectModel(DailyRecipe.name)
     private readonly dailyRecipeModel: Model<DailyRecipeDocument>,
+    @InjectModel(Recipe.name)
+    private readonly recipeModel: Model<RecipeDocument>,
     private readonly spoonacularService: SpoonacularService,
   ) {}
 
@@ -45,8 +48,53 @@ export class RecipesService {
     return new Date().toISOString().slice(0, 10);
   }
 
-  getRecipeDetails(sourceId: number, lang: Lang) {
-    return { sourceId, lang };
+  async getRecipeDetails(sourceId: number, lang: Lang = 'en') {
+    let recipe = await this.recipeModel.findOne({ sourceId }).exec();
+    console.log(lang);
+    if (!recipe) {
+      const spoonacularRecipe =
+        await this.spoonacularService.getRecipeById(sourceId);
+
+      recipe = await this.recipeModel.create({
+        sourceId,
+        base: {
+          title: spoonacularRecipe.title,
+          summary: spoonacularRecipe.summary,
+          instructions: spoonacularRecipe.instructions,
+          ingredients: spoonacularRecipe.extendedIngredients.map((i) => ({
+            id: i.id,
+            name: i.name,
+            original: i.original,
+            amount: i.amount,
+            unit: i.unit,
+            image: i.image,
+          })),
+        },
+        meta: {
+          image: spoonacularRecipe.image,
+          readyInMinutes: spoonacularRecipe.readyInMinutes,
+          servings: spoonacularRecipe.servings,
+          vegetarian: spoonacularRecipe.vegetarian,
+          vegan: spoonacularRecipe.vegan,
+          glutenFree: spoonacularRecipe.glutenFree,
+        },
+      });
+    }
+
+    return {
+      sourceId: recipe.sourceId,
+      title: recipe.base.title,
+      summary: recipe.base.summary,
+      instructions: recipe.base.instructions,
+      ingredients: recipe.base.ingredients,
+      image: recipe.meta.image,
+      readyInMinutes: recipe.meta.readyInMinutes,
+      servings: recipe.meta.servings,
+      vegetarian: recipe.meta.vegetarian,
+      vegan: recipe.meta.vegan,
+      glutenFree: recipe.meta.glutenFree,
+      lang: 'en',
+    };
   }
 
   getSimilarRecipe(sourceId: number, lang: Lang) {

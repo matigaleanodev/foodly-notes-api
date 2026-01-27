@@ -20,8 +20,18 @@ export interface SpoonacularRecipeDetail {
   vegan: boolean;
   glutenFree: boolean;
   extendedIngredients: SpoonacularIngredient[];
+  analyzedInstructions: SpoonacularAnalyzedInstruction[];
 }
 
+export interface SpoonacularAnalyzedInstruction {
+  name?: string;
+  steps: SpoonacularInstructionStep[];
+}
+
+export interface SpoonacularInstructionStep {
+  number: number;
+  step: string;
+}
 export interface SpoonacularIngredient {
   id: number;
   name: string;

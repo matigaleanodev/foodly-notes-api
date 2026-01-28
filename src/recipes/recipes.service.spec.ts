@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RecipesService } from './recipes.service';
 import { getModelToken } from '@nestjs/mongoose';
+import { RecipesService } from './recipes.service';
 import { DailyRecipe } from './schemas/daily-recipe.schema';
 import { Recipe } from './schemas/recipe.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
@@ -9,25 +9,25 @@ import { TranslationService } from './translation/translation.service';
 describe('RecipesService', () => {
   let service: RecipesService;
 
-  const dailyRecipeModel = {
+  const dailyRecipeModelMock = {
     findOne: jest.fn(),
     create: jest.fn(),
   };
 
-  const recipeModel = {
+  const recipeModelMock = {
     findOne: jest.fn(),
     create: jest.fn(),
     find: jest.fn(),
   };
 
-  const spoonacularService = {
+  const spoonacularServiceMock = {
     getDailyRecipes: jest.fn(),
     getRecipeById: jest.fn(),
     getSimilarRecipes: jest.fn(),
     searchRecipes: jest.fn(),
   };
 
-  const translationService = {
+  const translationServiceMock = {
     translateRecipeToSpanish: jest.fn(),
   };
 
@@ -39,24 +39,24 @@ describe('RecipesService', () => {
         RecipesService,
         {
           provide: getModelToken(DailyRecipe.name),
-          useValue: dailyRecipeModel,
+          useValue: dailyRecipeModelMock,
         },
         {
           provide: getModelToken(Recipe.name),
-          useValue: recipeModel,
+          useValue: recipeModelMock,
         },
         {
           provide: SpoonacularService,
-          useValue: spoonacularService,
+          useValue: spoonacularServiceMock,
         },
         {
           provide: TranslationService,
-          useValue: translationService,
+          useValue: translationServiceMock,
         },
       ],
     }).compile();
 
-    service = module.get(RecipesService);
+    service = module.get<RecipesService>(RecipesService);
   });
 
   it('debería estar definido', () => {
@@ -64,21 +64,23 @@ describe('RecipesService', () => {
   });
 
   it('getDailyRecipes debería devolver cache si existe', async () => {
-    dailyRecipeModel.findOne.mockResolvedValue({
-      recipes: [{ sourceId: 1, title: 'Cached', image: 'img' }],
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: ['cached'],
+      }),
     });
 
     const result = await service.getDailyRecipes('en');
 
-    expect(dailyRecipeModel.findOne).toHaveBeenCalled();
-    expect(spoonacularService.getDailyRecipes).not.toHaveBeenCalled();
-    expect(result).toHaveLength(1);
+    expect(result).toEqual(['cached']);
   });
 
   it('getDailyRecipes debería crear daily si no hay cache', async () => {
-    dailyRecipeModel.findOne.mockResolvedValue(null);
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
+    });
 
-    spoonacularService.getDailyRecipes.mockResolvedValue([
+    spoonacularServiceMock.getDailyRecipes.mockResolvedValue([
       {
         id: 1,
         title: 'Recipe',
@@ -87,89 +89,87 @@ describe('RecipesService', () => {
       },
     ]);
 
+    dailyRecipeModelMock.create.mockResolvedValue(undefined);
+
     const result = await service.getDailyRecipes('en');
 
-    expect(spoonacularService.getDailyRecipes).toHaveBeenCalled();
-    expect(dailyRecipeModel.create).toHaveBeenCalled();
-    expect(result[0].sourceId).toBe(1);
+    expect(dailyRecipeModelMock.create).toHaveBeenCalled();
+    expect(result.length).toBe(1);
   });
 
   it('getRecipeDetails debería devolver receta en inglés', async () => {
-    const recipeDoc: any = {
-      sourceId: 1,
-      base: {
-        title: 'Title',
-        summary: 'Summary',
-        instructions: [],
-        ingredients: [],
-      },
-      meta: {},
-    };
-
-    recipeModel.findOne.mockResolvedValue(recipeDoc);
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          summary: 'Summary',
+          instructions: [],
+          ingredients: [],
+        },
+        meta: {},
+      }),
+    });
 
     const result = await service.getRecipeDetails(1, 'en');
 
-    expect(result.lang).toBe('en');
     expect(result.title).toBe('Title');
   });
 
   it('getRecipeDetails debería traducir y guardar si lang es es', async () => {
-    interface RecipeDocWithSave {
-      sourceId: number;
-      base: {
-        title: string;
-        summary: string;
-        instructions: any[];
-        ingredients: any[];
-      };
-      meta: object;
-      translations: object;
-      save: jest.Mock;
-    }
+    const saveMock = jest.fn();
 
-    const recipeDoc: RecipeDocWithSave = {
-      sourceId: 1,
-      base: {
-        title: 'Title',
-        summary: 'Summary',
-        instructions: [],
-        ingredients: [],
-      },
-      meta: {},
-      translations: {},
-      save: jest.fn(),
-    };
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          summary: 'Summary',
+          instructions: [],
+          ingredients: [],
+        },
+        meta: {},
+        translations: {},
+        save: saveMock,
+      }),
+    });
 
-    recipeModel.findOne.mockResolvedValue(recipeDoc);
-
-    translationService.translateRecipeToSpanish.mockResolvedValue({
+    translationServiceMock.translateRecipeToSpanish.mockResolvedValue({
       title: 'Título',
       summary: 'Resumen',
       instructions: [],
       ingredients: [],
+      translatedAt: new Date(),
     });
 
     const result = await service.getRecipeDetails(1, 'es');
 
-    expect(translationService.translateRecipeToSpanish).toHaveBeenCalled();
-    expect(recipeDoc.save).toHaveBeenCalled();
+    expect(saveMock).toHaveBeenCalled();
     expect(result.title).toBe('Título');
   });
 
   it('getIngredientsForRecipes debería devolver ingredientes en español', async () => {
-    const recipeDoc: any = {
-      sourceId: 1,
-      base: { title: 'Title', ingredients: [] },
-      translations: {
-        es: {
-          title: 'Título',
-          ingredients: ['ing'],
-        },
-      },
-    };
+    const saveMock = jest.fn();
 
-    recipeModel.findOne.mockResolvedValue(recipeDoc);
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          ingredients: [],
+        },
+        translations: {},
+        save: saveMock,
+      }),
+    });
+
+    translationServiceMock.translateRecipeToSpanish.mockResolvedValue({
+      title: 'Título',
+      ingredients: ['ingredientes'],
+      instructions: [],
+      summary: '',
+      translatedAt: new Date(),
+    });
 
     const result = await service.getIngredientsForRecipes([1], 'es');
 

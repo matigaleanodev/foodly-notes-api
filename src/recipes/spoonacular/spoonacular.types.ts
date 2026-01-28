@@ -19,6 +19,13 @@ export interface SpoonacularRecipeDetail {
   vegetarian: boolean;
   vegan: boolean;
   glutenFree: boolean;
+  dairyFree: boolean;
+  sourceName: string;
+  sourceUrl: string;
+  cookingMinutes: number;
+  preparationMinutes: number;
+  healthScore: number;
+  aggregateLikes: number;
   extendedIngredients: SpoonacularIngredient[];
   analyzedInstructions: SpoonacularAnalyzedInstruction[];
 }

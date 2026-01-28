@@ -17,8 +17,7 @@ export class TranslationService {
       recipe.base.title,
       recipe.base.summary,
       ...instructionSteps,
-      ...recipe.base.ingredients.map((i) => i.name),
-      ...recipe.base.ingredients.map((i) => i.original),
+      ...recipe.base.ingredients.flatMap((i) => [i.name, i.original]),
     ];
 
     const translated = await this.azure.translate(texts, 'es');

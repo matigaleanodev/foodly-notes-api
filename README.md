@@ -1,98 +1,126 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="docs/assets/floodly_notes_icon_green.png" alt="Foodly Notes" width="200" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Foodly Notes – API
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+🌐 English version: [README.en.md](./README.en.md)
 
-## Description
+**Foodly Notes** es una aplicación orientada a la búsqueda, guardado y organización de recetas de cocina, con soporte para **listas de compras**, **favoritos** y **traducción automática** de contenido.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Este repositorio contiene la **API backend**, responsable de:
 
-## Project setup
+- Obtener recetas desde fuentes externas
+- Persistir información normalizada
+- Traducir contenido al español bajo demanda
+- Exponer endpoints optimizados para consumo mobile
 
-```bash
-$ npm install
+El frontend y el backend forman parte de una **misma aplicación**, diseñada con criterios de producto real y pensada para producción.
+
+---
+
+## 🧩 Arquitectura general
+
+- **Frontend**: Ionic + Angular
+- **Backend**: NestJS + MongoDB
+- **APIs externas**:
+  - Spoonacular (recetas)
+  - Azure Cognitive Translator (traducciones)
+- **Documentación**: Swagger UI
+
+---
+
+## 🛠️ Stack tecnológico
+
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black)
+![Spoonacular](https://img.shields.io/badge/Spoonacular-API-blue)
+![Azure Translator](https://img.shields.io/badge/Azure-Cognitive%20Translator-0078D4)
+
+---
+
+## 🌍 Internacionalización
+
+- Idioma base: **inglés**
+- Idioma soportado: **español**
+- La traducción:
+  - Se realiza **on-demand**
+  - Se **persiste en base de datos**
+  - Evita llamadas repetidas a servicios externos
+
+---
+
+## 📦 Endpoints principales
+
+> La documentación completa y actualizada está disponible en **Swagger**.
+
+### 🔹 Recetas del día
+
+`GET /api/recipes/daily`
+
+Devuelve un listado de recetas diarias con sus ingredientes.  
+El resultado se **cachea por día** para reducir llamadas externas.
+
+Parámetros:
+
+- `lang` (opcional): `en | es`
+
+### 🔹 Detalle de receta
+
+`GET /api/recipes/:id`
+
+Devuelve el detalle completo de una receta:
+
+- Información general
+- Instrucciones estructuradas
+- Ingredientes
+- Metadatos nutricionales básicos
+
+Si se solicita en español:
+
+- La receta se traduce
+- Se guarda en base de datos
+- Se reutiliza en futuras consultas
+
+Parámetros:
+
+- `lang` (opcional): `en | es`
+
+### 🔹 Recetas similares
+
+`GET /api/recipes/:id/similar`
+
+Devuelve recetas relacionadas a una receta dada.
+
+### 🔹 Ingredientes por recetas
+
+`POST /api/recipes/ingredients`
+
+Pensado para **listas de compras**.
+
+Recibe múltiples recetas y devuelve únicamente:
+
+- `sourceId`
+- `title`
+- `ingredients`
+
+Soporta traducción y persistencia automática.
+
+Body:
+
+```json
+{
+  "sourceIds": [636598, 123456],
+  "lang": "es"
+}
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## 🧑‍💻 Desarrollo
 
-# watch mode
-$ npm run start:dev
+Para instrucciones de configuración y desarrollo, consulta:
 
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+👉 [DEVELOPMENT.md](./DEVELOPMENT.md)

@@ -25,7 +25,7 @@ import {
   INGREDIENTS_SCHEMA,
 } from './recipes.swagger';
 
-@ApiTags('recipes')
+@ApiTags('Recipes')
 @Controller('recipes')
 export class RecipesController {
   constructor(private readonly recipesService: RecipesService) {}

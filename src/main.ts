@@ -6,19 +6,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const config = new DocumentBuilder()
-    .setTitle('Foodly Notes API')
-    .setDescription(
-      'API de recetas de cocina en ingles con traduccion al español',
-    )
-    .setVersion('1.0')
-    .addTag('recipes')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
   app.setGlobalPrefix('api');
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -26,6 +15,19 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  const config = new DocumentBuilder()
+    .setTitle('Foodly Notes API')
+    .setDescription(
+      'Aplicación orientada a la búsqueda, guardado y organización de recetas de cocina, con soporte para listas de compras, favoritos y traducción automática de contenido',
+    )
+    .setVersion('1.0.1')
+    .addTag('recipes')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap().catch((err) => console.error(err));

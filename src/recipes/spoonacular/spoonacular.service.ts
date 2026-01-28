@@ -3,7 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import {
-  SpoonacularRandomResponse,
+  SpoonacularIngredient,
   SpoonacularRecipeDetail,
 } from './spoonacular.types';
 
@@ -20,18 +20,34 @@ export class SpoonacularService {
   }
 
   async getDailyRecipes(number = 10) {
-    const { data } =
-      await this.httpService.axiosRef.get<SpoonacularRandomResponse>(
-        `${SPOONACULAR_BASE_URL}recipes/random`,
-        {
-          params: {
-            apiKey: this.apiKey,
-            number,
-          },
-        },
-      );
+    const { data } = await this.httpService.axiosRef.get<{
+      results: {
+        id: number;
+        title: string;
+        imageType?: string;
+        extendedIngredients?: {
+          id: number;
+          name: string;
+          original: string;
+          amount: number;
+          unit: string;
+          image: string;
+        }[];
+      }[];
+    }>(`${SPOONACULAR_BASE_URL}recipes/complexSearch`, {
+      params: {
+        apiKey: this.apiKey,
+        number,
+        addRecipeInformation: true,
+      },
+    });
 
-    return data.recipes;
+    return data.results.map((r) => ({
+      id: r.id,
+      title: r.title,
+      image: this.buildImage(r.id, r.imageType),
+      ingredients: r.extendedIngredients ?? [],
+    }));
   }
 
   async getRecipeById(id: number) {
@@ -65,6 +81,41 @@ export class SpoonacularService {
       },
     });
 
-    return data;
+    return data.map((r) => ({
+      id: r.id,
+      title: r.title,
+      image: this.buildImage(r.id, r.imageType),
+    }));
+  }
+
+  async searchRecipes(query: string, limit = 12) {
+    const { data } = await this.httpService.axiosRef.get<{
+      results: {
+        id: number;
+        title: string;
+        imageType?: string;
+        extendedIngredients?: SpoonacularIngredient[];
+      }[];
+    }>(`${SPOONACULAR_BASE_URL}recipes/complexSearch`, {
+      params: {
+        apiKey: this.apiKey,
+        query,
+        number: Math.min(limit, 12),
+        addRecipeInformation: true,
+      },
+    });
+
+    return data.results.map((r) => ({
+      id: r.id,
+      title: r.title,
+      image: this.buildImage(r.id, r.imageType),
+      extendedIngredients: r.extendedIngredients ?? [],
+    }));
+  }
+
+  private buildImage(id: number, imageType?: string) {
+    return imageType
+      ? `https://img.spoonacular.com/recipes/${id}-556x370.${imageType}`
+      : null;
   }
 }

@@ -6,7 +6,7 @@ This document describes how to run and develop the Foodly Notes API locally.
 
 ## 🔧 Requirements
 
-- Node.js 18+
+- Node.js 22+
 - MongoDB (local or remote)
 - Spoonacular API key
 - Azure Cognitive Translator credentials

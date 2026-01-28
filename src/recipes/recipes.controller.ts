@@ -1,4 +1,12 @@
-import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import type { Lang } from 'src/common/types/lang.type';
 
@@ -29,5 +37,20 @@ export class RecipesController {
   @Get()
   getAllRecipes() {
     return this.recipesService.getAllRecipes();
+  }
+
+  @Post('ingredients')
+  getIngredients(
+    @Body()
+    body: {
+      sourceIds: number[];
+      lang?: Lang;
+    },
+  ) {
+    const safeLang: Lang = body.lang === 'es' ? 'es' : 'en';
+    return this.recipesService.getIngredientsForRecipes(
+      body.sourceIds,
+      safeLang,
+    );
   }
 }

@@ -35,7 +35,15 @@ export class RecipesService {
     const recipes = spoonacularRecipes.map((recipe) => ({
       sourceId: recipe.id,
       title: recipe.title,
-      image: recipe.image,
+      image: recipe.image ?? undefined,
+      ingredients: recipe.ingredients.map((i) => ({
+        id: i.id,
+        name: i.name,
+        original: i.original,
+        amount: i.amount,
+        unit: i.unit,
+        image: i.image,
+      })),
     }));
 
     await this.dailyRecipeModel.create({
@@ -76,12 +84,68 @@ export class RecipesService {
   }
 
   async getSimilarRecipe(sourceId: number) {
-    const similar = await this.spoonacularService.getSimilarRecipes(sourceId);
+    return this.spoonacularService.getSimilarRecipes(sourceId);
+  }
 
-    return similar.map((recipe) => ({
-      sourceId: recipe.id,
-      title: recipe.title,
-      image: `https://img.spoonacular.com/recipes/${recipe.id}-556x370.${recipe.imageType}`,
+  async getIngredientsForRecipes(sourceIds: number[], lang: Lang = 'en') {
+    const recipes = await Promise.all(
+      sourceIds.map((sourceId) => this.findOrCreateRecipe(sourceId)),
+    );
+
+    if (lang === 'es') {
+      await Promise.all(
+        recipes.map(async (recipe) => {
+          if (!recipe.translations?.es) {
+            const translated =
+              await this.translationService.translateRecipeToSpanish(recipe);
+
+            recipe.translations = {
+              ...recipe.translations,
+              es: {
+                ...translated,
+                translatedAt: new Date(),
+              },
+            };
+
+            await recipe.save();
+          }
+        }),
+      );
+    }
+
+    return recipes.map((recipe) => {
+      if (lang === 'es' && recipe.translations?.es) {
+        return {
+          sourceId: recipe.sourceId,
+          title: recipe.translations.es.title,
+          ingredients: recipe.translations.es.ingredients,
+        };
+      }
+
+      return {
+        sourceId: recipe.sourceId,
+        title: recipe.base.title,
+        ingredients: recipe.base.ingredients,
+      };
+    });
+  }
+
+  async searchRecipes(query: string) {
+    const results = await this.spoonacularService.searchRecipes(query);
+
+    return results.map((r) => ({
+      sourceId: r.id,
+      title: r.title,
+      image: r.image,
+      ingredients:
+        r.extendedIngredients?.map((i) => ({
+          id: i.id,
+          name: i.name,
+          original: i.original,
+          amount: i.amount,
+          unit: i.unit,
+          image: i.image,
+        })) ?? [],
     }));
   }
 

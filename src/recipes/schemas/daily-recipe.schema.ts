@@ -14,6 +14,16 @@ export class DailyRecipe {
         sourceId: Number,
         title: String,
         image: String,
+        ingredients: [
+          {
+            id: Number,
+            name: String,
+            original: String,
+            amount: Number,
+            unit: String,
+            image: String,
+          },
+        ],
       },
     ],
     required: true,
@@ -22,6 +32,16 @@ export class DailyRecipe {
     sourceId: number;
     title: string;
     image: string;
+    ingredients: [
+      {
+        id: number;
+        name: string;
+        original: string;
+        amount: number;
+        unit: string;
+        image: string;
+      },
+    ];
   }[];
 }
 

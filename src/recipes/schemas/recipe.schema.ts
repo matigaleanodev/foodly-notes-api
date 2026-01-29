@@ -70,6 +70,14 @@ export class Recipe {
       vegetarian: Boolean,
       vegan: Boolean,
       glutenFree: Boolean,
+
+      dairyFree: Boolean,
+      cookingMinutes: Number,
+      preparationMinutes: Number,
+      healthScore: Number,
+      aggregateLikes: Number,
+      sourceName: String,
+      sourceUrl: String,
     },
   })
   meta: {
@@ -79,6 +87,14 @@ export class Recipe {
     vegetarian: boolean;
     vegan: boolean;
     glutenFree: boolean;
+
+    dairyFree: boolean;
+    cookingMinutes: number;
+    preparationMinutes: number;
+    healthScore: number;
+    aggregateLikes: number;
+    sourceName: string;
+    sourceUrl: string;
   };
 
   @Prop({

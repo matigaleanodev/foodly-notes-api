@@ -36,14 +36,6 @@ export class RecipesService {
       sourceId: recipe.id,
       title: recipe.title,
       image: recipe.image ?? undefined,
-      ingredients: recipe.ingredients.map((i) => ({
-        id: i.id,
-        name: i.name,
-        original: i.original,
-        amount: i.amount,
-        unit: i.unit,
-        image: i.image,
-      })),
     }));
 
     await this.dailyRecipeModel.create({
@@ -172,6 +164,15 @@ export class RecipesService {
       vegetarian: recipe.meta.vegetarian,
       vegan: recipe.meta.vegan,
       glutenFree: recipe.meta.glutenFree,
+
+      dairyFree: recipe.meta.dairyFree,
+      cookingMinutes: recipe.meta.cookingMinutes,
+      preparationMinutes: recipe.meta.preparationMinutes,
+      healthScore: recipe.meta.healthScore,
+      aggregateLikes: recipe.meta.aggregateLikes,
+      sourceName: recipe.meta.sourceName,
+      sourceUrl: recipe.meta.sourceUrl,
+
       lang,
     };
   }
@@ -195,6 +196,15 @@ export class RecipesService {
       vegetarian: recipe.meta.vegetarian,
       vegan: recipe.meta.vegan,
       glutenFree: recipe.meta.glutenFree,
+
+      dairyFree: recipe.meta.dairyFree,
+      cookingMinutes: recipe.meta.cookingMinutes,
+      preparationMinutes: recipe.meta.preparationMinutes,
+      healthScore: recipe.meta.healthScore,
+      aggregateLikes: recipe.meta.aggregateLikes,
+      sourceName: recipe.meta.sourceName,
+      sourceUrl: recipe.meta.sourceUrl,
+
       lang,
     };
   }
@@ -237,6 +247,14 @@ export class RecipesService {
         vegetarian: spoonacularRecipe.vegetarian,
         vegan: spoonacularRecipe.vegan,
         glutenFree: spoonacularRecipe.glutenFree,
+
+        dairyFree: spoonacularRecipe.dairyFree,
+        cookingMinutes: spoonacularRecipe.cookingMinutes,
+        preparationMinutes: spoonacularRecipe.preparationMinutes,
+        healthScore: spoonacularRecipe.healthScore,
+        aggregateLikes: spoonacularRecipe.aggregateLikes,
+        sourceName: spoonacularRecipe.sourceName,
+        sourceUrl: spoonacularRecipe.sourceUrl,
       },
     });
   }

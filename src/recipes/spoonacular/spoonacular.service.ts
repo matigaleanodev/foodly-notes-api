@@ -7,7 +7,6 @@ import {
   SpoonacularRecipeDetail,
 } from './spoonacular.types';
 
-const SPOONACULAR_BASE_URL = 'https://api.spoonacular.com/';
 @Injectable()
 export class SpoonacularService {
   constructor(
@@ -19,22 +18,18 @@ export class SpoonacularService {
     return this.config.getOrThrow<string>('SPOONACULAR_API_KEY');
   }
 
-  async getDailyRecipes(number = 10) {
+  private get baseURL(): string {
+    return this.config.getOrThrow<string>('SPOONACULAR_BASE_URL');
+  }
+
+  async getDailyRecipes(number = 12) {
     const { data } = await this.httpService.axiosRef.get<{
-      results: {
+      recipes: {
         id: number;
         title: string;
-        imageType?: string;
-        extendedIngredients?: {
-          id: number;
-          name: string;
-          original: string;
-          amount: number;
-          unit: string;
-          image: string;
-        }[];
+        image: string;
       }[];
-    }>(`${SPOONACULAR_BASE_URL}recipes/complexSearch`, {
+    }>(`${this.baseURL}/recipes/random`, {
       params: {
         apiKey: this.apiKey,
         number,
@@ -42,11 +37,10 @@ export class SpoonacularService {
       },
     });
 
-    return data.results.map((r) => ({
+    return data.recipes.map((r) => ({
       id: r.id,
       title: r.title,
-      image: this.buildImage(r.id, r.imageType),
-      ingredients: r.extendedIngredients ?? [],
+      image: r.image,
     }));
   }
 
@@ -54,7 +48,7 @@ export class SpoonacularService {
     try {
       const { data } =
         await this.httpService.axiosRef.get<SpoonacularRecipeDetail>(
-          `${SPOONACULAR_BASE_URL}recipes/${id}/information`,
+          `${this.baseURL}/recipes/${id}/information`,
           {
             params: {
               apiKey: this.apiKey,
@@ -74,7 +68,7 @@ export class SpoonacularService {
   async getSimilarRecipes(id: number, number = 6) {
     const { data } = await this.httpService.axiosRef.get<
       { id: number; title: string; imageType: string }[]
-    >(`${SPOONACULAR_BASE_URL}recipes/${id}/similar`, {
+    >(`${this.baseURL}/recipes/${id}/similar`, {
       params: {
         apiKey: this.apiKey,
         number,
@@ -96,7 +90,7 @@ export class SpoonacularService {
         imageType?: string;
         extendedIngredients?: SpoonacularIngredient[];
       }[];
-    }>(`${SPOONACULAR_BASE_URL}recipes/complexSearch`, {
+    }>(`${this.baseURL}/recipes/complexSearch`, {
       params: {
         apiKey: this.apiKey,
         query,

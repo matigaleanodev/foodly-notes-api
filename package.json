@@ -27,7 +27,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && pm2 restart foodly-notes-api",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

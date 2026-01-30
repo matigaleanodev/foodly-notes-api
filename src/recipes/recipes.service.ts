@@ -129,15 +129,6 @@ export class RecipesService {
       sourceId: r.id,
       title: r.title,
       image: r.image,
-      ingredients:
-        r.extendedIngredients?.map((i) => ({
-          id: i.id,
-          name: i.name,
-          original: i.original,
-          amount: i.amount,
-          unit: i.unit,
-          image: i.image,
-        })) ?? [],
     }));
   }
 

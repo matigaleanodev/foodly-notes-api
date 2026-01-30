@@ -53,6 +53,25 @@ export class RecipesController {
   }
 
   @ApiOperation({
+    summary: 'Buscar recetas por texto',
+    description:
+      'Busca recetas por query utilizando Spoonacular. Devuelve resultados básicos.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    description: 'Texto a buscar (ej: pasta, pollo, ensalada)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Listado de recetas encontradas',
+  })
+  @Get('search')
+  searchRecipes(@Query('q') query: string) {
+    return this.recipesService.searchRecipes(query);
+  }
+
+  @ApiOperation({
     summary: 'Obtener detalle de una receta',
     description:
       'Devuelve el detalle completo de una receta. Traduce y guarda si el idioma es español.',
@@ -139,24 +158,5 @@ export class RecipesController {
       body.sourceIds,
       safeLang,
     );
-  }
-
-  @ApiOperation({
-    summary: 'Buscar recetas por texto',
-    description:
-      'Busca recetas por query utilizando Spoonacular. Devuelve resultados básicos.',
-  })
-  @ApiQuery({
-    name: 'q',
-    required: true,
-    description: 'Texto a buscar (ej: pasta, pollo, ensalada)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado de recetas encontradas',
-  })
-  @Get('search')
-  searchRecipes(@Query('q') query: string) {
-    return this.recipesService.searchRecipes(query);
   }
 }

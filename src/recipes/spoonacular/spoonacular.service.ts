@@ -2,10 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import {
-  SpoonacularIngredient,
-  SpoonacularRecipeDetail,
-} from './spoonacular.types';
+import { SpoonacularRecipeDetail } from './spoonacular.types';
 
 @Injectable()
 export class SpoonacularService {
@@ -76,7 +73,7 @@ export class SpoonacularService {
     });
 
     return data.map((r) => ({
-      id: r.id,
+      sourceId: r.id,
       title: r.title,
       image: this.buildImage(r.id, r.imageType),
     }));
@@ -88,7 +85,6 @@ export class SpoonacularService {
         id: number;
         title: string;
         imageType?: string;
-        extendedIngredients?: SpoonacularIngredient[];
       }[];
     }>(`${this.baseURL}/recipes/complexSearch`, {
       params: {
@@ -103,7 +99,6 @@ export class SpoonacularService {
       id: r.id,
       title: r.title,
       image: this.buildImage(r.id, r.imageType),
-      extendedIngredients: r.extendedIngredients ?? [],
     }));
   }
 

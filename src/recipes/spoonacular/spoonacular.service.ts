@@ -76,7 +76,7 @@ export class SpoonacularService {
     });
 
     return data.map((r) => ({
-      id: r.id,
+      sourceId: r.id,
       title: r.title,
       image: this.buildImage(r.id, r.imageType),
     }));

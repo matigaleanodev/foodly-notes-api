@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RecipesModule } from './recipes/recipes.module';
 import { HttpModule } from '@nestjs/axios';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -20,5 +21,6 @@ import { HttpModule } from '@nestjs/axios';
     }),
     RecipesModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

@@ -9,7 +9,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   app.enableCors({
-    origin: true,
+    origin: process.env.CORS_ORIGIN ?? true,
   });
 
   app.useGlobalPipes(
@@ -32,6 +32,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap().catch((err) => console.error(err));

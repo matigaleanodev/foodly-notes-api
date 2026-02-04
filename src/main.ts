@@ -26,7 +26,6 @@ async function bootstrap() {
       'Aplicación orientada a la búsqueda, guardado y organización de recetas de cocina, con soporte para listas de compras, favoritos y traducción automática de contenido',
     )
     .setVersion('1.0.1')
-    .addTag('recipes')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

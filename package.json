@@ -1,33 +1,11 @@
 {
   "name": "foodly-notes-api",
   "version": "1.0.1",
-  "description": "Backend API for Foodly Notes, providing recipe search, translations, and shopping list support",
   "author": "Matias Galeano",
   "private": true,
   "license": "UNLICENSED",
-  "keywords": [
-    "nestjs",
-    "api",
-    "recipes",
-    "food",
-    "cooking",
-    "spoonacular",
-    "azure-translation",
-    "mongodb",
-    "i18n",
-    "backend",
-    "swagger",
-    "mobile-api"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/matigaleanodev/foodly-notes-api"
-  },
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
-    "build": "nest build && pm2 restart foodly-notes-api",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -98,5 +76,27 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "description": "Backend API for Foodly Notes, providing recipe search, translations, and shopping list support",
+  "keywords": [
+    "nestjs",
+    "api",
+    "recipes",
+    "food",
+    "cooking",
+    "spoonacular",
+    "azure-translation",
+    "mongodb",
+    "i18n",
+    "backend",
+    "swagger",
+    "mobile-api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matigaleanodev/foodly-notes-api"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

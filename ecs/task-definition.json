@@ -1,14 +1,5 @@
 {
-  "family": "foodly-notes-api",
-  "networkMode": "awsvpc",
-  "executionRoleArn": "arn:aws:iam::317430950029:role/ecsTaskExecutionRole",
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "256",
-  "memory": "512",
-  "runtimePlatform": {
-    "cpuArchitecture": "X86_64",
-    "operatingSystemFamily": "LINUX"
-  },
+  "taskDefinitionArn": "arn:aws:ecs:us-east-2:317430950029:task-definition/foodly-notes-api:1",
   "containerDefinitions": [
     {
       "name": "foodly-notes-api",
@@ -34,8 +25,10 @@
           "value": "production"
         }
       ],
+      "environmentFiles": [],
       "mountPoints": [],
       "volumesFrom": [],
+      "ulimits": [],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -43,17 +36,55 @@
           "awslogs-create-group": "true",
           "awslogs-region": "us-east-2",
           "awslogs-stream-prefix": "ecs"
-        }
+        },
+        "secretOptions": []
       },
-      "healthCheck": {
-        "command": ["CMD-SHELL", "curl -f http://localhost:3000/api || exit 1"],
-        "interval": 30,
-        "timeout": 5,
-        "retries": 3,
-        "startPeriod": 20
-      }
+      "systemControls": []
     }
   ],
+  "family": "foodly-notes-api",
+  "executionRoleArn": "arn:aws:iam::317430950029:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "revision": 1,
   "volumes": [],
-  "placementConstraints": []
+  "status": "ACTIVE",
+  "requiresAttributes": [
+    {
+      "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+    },
+    {
+      "name": "ecs.capability.execution-role-awslogs"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.ecr-auth"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+    },
+    {
+      "name": "ecs.capability.execution-role-ecr-pull"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+    },
+    {
+      "name": "ecs.capability.task-eni"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+    }
+  ],
+  "placementConstraints": [],
+  "compatibilities": ["EC2", "MANAGED_INSTANCES", "FARGATE"],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "registeredAt": "2026-02-07T15:03:32.736Z",
+  "registeredBy": "arn:aws:iam::317430950029:root",
+  "enableFaultInjection": false,
+  "tags": []
 }

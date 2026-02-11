@@ -8,7 +8,9 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  const corsOrigins = process.env.CORS_ORIGIN?.split(',') ?? [];
+  const corsOrigins = '*';
+
+  //process.env.CORS_ORIGIN?.split(',') ?? [];
 
   app.enableCors({
     origin: corsOrigins,
@@ -27,7 +29,7 @@ async function bootstrap() {
     .setDescription(
       'Aplicación orientada a la búsqueda, guardado y organización de recetas de cocina, con soporte para listas de compras, favoritos y traducción automática de contenido',
     )
-    .setVersion('1.0.2')
+    .setVersion('1.0.3')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

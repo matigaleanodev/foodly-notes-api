@@ -23,7 +23,12 @@ describe('SpoonacularService', () => {
         {
           provide: ConfigService,
           useValue: {
-            getOrThrow: jest.fn().mockReturnValue('fake-api-key'),
+            getOrThrow: jest.fn((key: string) => {
+              if (key === 'SPOONACULAR_API_KEY') return 'fake-api-key';
+              if (key === 'SPOONACULAR_BASE_URL')
+                return 'https://api.spoonacular.com';
+              return null;
+            }),
           },
         },
       ],
@@ -37,24 +42,14 @@ describe('SpoonacularService', () => {
     expect(service).toBeDefined();
   });
 
-  it('debería devolver recetas diarias con imagen e ingredientes', async () => {
+  it('debería devolver recetas diarias con imagen', async () => {
     jest.spyOn(httpService.axiosRef, 'get').mockResolvedValueOnce({
       data: {
-        results: [
+        recipes: [
           {
             id: 1,
             title: 'Recipe 1',
-            imageType: 'jpg',
-            extendedIngredients: [
-              {
-                id: 10,
-                name: 'Salt',
-                original: 'Salt',
-                amount: 1,
-                unit: 'tsp',
-                image: 'salt.jpg',
-              },
-            ],
+            image: 'https://img.spoonacular.com/recipes/1-556x370.jpg',
           },
         ],
       },
@@ -67,16 +62,6 @@ describe('SpoonacularService', () => {
         id: 1,
         title: 'Recipe 1',
         image: 'https://img.spoonacular.com/recipes/1-556x370.jpg',
-        ingredients: [
-          {
-            id: 10,
-            name: 'Salt',
-            original: 'Salt',
-            amount: 1,
-            unit: 'tsp',
-            image: 'salt.jpg',
-          },
-        ],
       },
     ]);
   });
@@ -96,14 +81,14 @@ describe('SpoonacularService', () => {
 
     expect(result).toEqual([
       {
-        id: 2,
+        sourceId: 2,
         title: 'Similar recipe',
         image: 'https://img.spoonacular.com/recipes/2-556x370.png',
       },
     ]);
   });
 
-  it('debería buscar recetas y devolver ingredientes vacíos si no existen', async () => {
+  it('debería buscar recetas y devolver estructura simplificada', async () => {
     jest.spyOn(httpService.axiosRef, 'get').mockResolvedValueOnce({
       data: {
         results: [
@@ -123,7 +108,6 @@ describe('SpoonacularService', () => {
         id: 3,
         title: 'Search recipe',
         image: 'https://img.spoonacular.com/recipes/3-556x370.jpg',
-        extendedIngredients: [],
       },
     ]);
   });

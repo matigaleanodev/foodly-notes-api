@@ -6,7 +6,7 @@ export type DailyRecipeDocument = HydratedDocument<DailyRecipe>;
 @Schema({ timestamps: true })
 export class DailyRecipe {
   @Prop({ required: true })
-  date: string; // YYYY-MM-DD
+  date!: string; // YYYY-MM-DD
 
   @Prop({
     type: [
@@ -18,7 +18,7 @@ export class DailyRecipe {
     ],
     required: true,
   })
-  recipes: {
+  recipes!: {
     sourceId: number;
     title: string;
     image: string;

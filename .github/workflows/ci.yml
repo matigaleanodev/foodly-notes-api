@@ -3,7 +3,6 @@ name: CI - Foodly Backend
 on:
   pull_request:
     branches:
-      - dev
       - main
 
 jobs:
@@ -28,6 +27,11 @@ jobs:
 
       - name: Run unit tests
         run: npm run test -- --ci --coverage
+
+      - name: Run e2e tests
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: npm run test:e2e
 
       - name: Build project
         run: npm run build

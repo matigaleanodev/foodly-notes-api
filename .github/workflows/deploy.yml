@@ -5,62 +5,97 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 env:
-  AWS_REGION: us-east-2
-  AWS_ACCOUNT_ID: 317430950029
-  ECR_REPOSITORY: foodly-notes-api
-  ECS_CLUSTER: foodly-notes-cluster
-  ECS_SERVICE: foodly-notes-api-service
-  TASK_FAMILY: foodly-notes-api
-  CONTAINER_NAME: foodly-notes-api
+  REGISTRY: ghcr.io
+  IMAGE_NAME: matigaleanodev/foodly-notes-api
+  APP_DIR: /home/ec2-user/infra/apps/foodly
 
 jobs:
-  build-and-deploy:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          registry: ${{ env.REGISTRY }}
+          username: matigaleanodev
+          password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build & Push (sha + latest)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Build, tag and push image
+      - name: Deploy on EC2 (docker compose)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ env.APP_DIR }}
+
+            sed -i "s|^IMAGE=.*$|IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}|g" .env
+
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Cleanup old images (keep last 3 sha tags)
+        if: success()
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          OWNER: matigaleanodev
+          PACKAGE: foodly-notes-api
+          KEEP: 3
         run: |
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG \
-            $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push \
-            $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          set -e
 
-      - name: Download current task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition $TASK_FAMILY \
-            --query taskDefinition \
-            > task-definition.json
+          versions=$(curl -s \
+            -H "Authorization: Bearer $GHCR_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/users/$OWNER/packages/container/$PACKAGE/versions?per_page=100")
 
-      - name: Render task definition with new image
-        id: render-task
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          ids_to_delete=$(echo "$versions" | jq -r '
+            [ .[]
+              | select(.metadata.container.tags != null)
+              | select([.metadata.container.tags[] | startswith("sha-")] | any)
+              | {id: .id, tags: .metadata.container.tags}
+            ]
+            | map(select(.tags | any(startswith("sha-"))))
+            | .['"$KEEP"':]
+            | .[].id
+          ')
 
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.render-task.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
+          if [ -z "$ids_to_delete" ]; then
+            echo "No old sha images to delete."
+            exit 0
+          fi
+
+          echo "$ids_to_delete" | while read -r id; do
+            echo "Deleting version id=$id"
+            curl -s -X DELETE \
+              -H "Authorization: Bearer $GHCR_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/users/$OWNER/packages/container/$PACKAGE/versions/$id" \
+              >/dev/null
+          done

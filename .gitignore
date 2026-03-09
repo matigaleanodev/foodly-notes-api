@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /build
+/postman-collection.json
 
 # Logs
 logs
@@ -55,3 +56,7 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 *.pem
+
+# Local-only project files
+agents.md
+roadmap.md

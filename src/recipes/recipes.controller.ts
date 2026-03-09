@@ -1,158 +1,75 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
-import type { Lang } from 'src/common/types/lang.type';
+import type { Lang } from '../common/types/lang.type';
 import {
-  ApiTags,
-  ApiQuery,
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-} from '@nestjs/swagger';
-import {
-  DAILY_RECIPES_RESPONSE_EXAMPLE,
-  RECIPE_DETAIL_RESPONSE_EXAMPLE,
-  SIMILAR_RECIPES_RESPONSE_EXAMPLE,
-  INGREDIENTS_RESPONSE_EXAMPLE,
-  INGREDIENTS_SCHEMA,
-} from './recipes.swagger';
+  ApiDailyRecipes,
+  ApiRecipeDetails,
+  ApiRecipeIngredients,
+  ApiRecipesController,
+  ApiSearchRecipes,
+  ApiSimilarRecipes,
+  ApiStoredRecipes,
+} from '../swagger/recipes.decorators';
+import { IngredientsRequestDto } from './dto/requests/ingredients-request.dto';
+import { LangQueryDto } from './dto/requests/lang-query.dto';
+import { RecipeIdParamDto } from './dto/requests/recipe-id-param.dto';
+import { SearchRecipesQueryDto } from './dto/requests/search-recipes-query.dto';
+import { RecipeDetailResponseDto } from './dto/responses/recipe-detail-response.dto';
+import { RecipeIngredientsResponseDto } from './dto/responses/recipe-ingredients-response.dto';
+import { RecipeSummaryResponseDto } from './dto/responses/recipe-summary-response.dto';
+import { SimilarRecipeResponseDto } from './dto/responses/similar-recipe-response.dto';
 
-@ApiTags('Recipes')
+@ApiRecipesController()
 @Controller('recipes')
 export class RecipesController {
   constructor(private readonly recipesService: RecipesService) {}
 
-  @ApiOperation({
-    summary: 'Obtener recetas del día',
-    description:
-      'Devuelve las recetas diarias con ingredientes. Cacheado por día.',
-  })
-  @ApiQuery({
-    name: 'lang',
-    required: false,
-    enum: ['en', 'es'],
-    description: 'Idioma de respuesta',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado de recetas diarias',
-    schema: { example: DAILY_RECIPES_RESPONSE_EXAMPLE },
-  })
+  @ApiDailyRecipes()
   @Get('daily')
-  getDailyRecipes(@Query('lang') lang?: Lang) {
-    const safeLang: Lang = lang === 'es' ? 'es' : 'en';
+  getDailyRecipes(
+    @Query() query: LangQueryDto,
+  ): Promise<RecipeSummaryResponseDto[]> {
+    const safeLang: Lang = query.lang === 'es' ? 'es' : 'en';
     return this.recipesService.getDailyRecipes(safeLang);
   }
 
-  @ApiOperation({
-    summary: 'Buscar recetas por texto',
-    description:
-      'Busca recetas por query utilizando Spoonacular. Devuelve resultados básicos.',
-  })
-  @ApiQuery({
-    name: 'q',
-    required: true,
-    description: 'Texto a buscar (ej: pasta, pollo, ensalada)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado de recetas encontradas',
-  })
+  @ApiSearchRecipes()
   @Get('search')
-  searchRecipes(@Query('q') query: string) {
-    return this.recipesService.searchRecipes(query);
+  searchRecipes(
+    @Query() query: SearchRecipesQueryDto,
+  ): Promise<RecipeSummaryResponseDto[]> {
+    return this.recipesService.searchRecipes(query.q);
   }
 
-  @ApiOperation({
-    summary: 'Obtener detalle de una receta',
-    description:
-      'Devuelve el detalle completo de una receta. Traduce y guarda si el idioma es español.',
-  })
-  @ApiParam({
-    name: 'id',
-    type: Number,
-    description: 'ID de receta de Spoonacular',
-  })
-  @ApiQuery({
-    name: 'lang',
-    required: false,
-    enum: ['en', 'es'],
-    description: 'Idioma de respuesta',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Detalle de la receta',
-    schema: { example: RECIPE_DETAIL_RESPONSE_EXAMPLE },
-  })
+  @ApiRecipeDetails()
   @Get(':id')
   getRecipeDetails(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('lang') lang?: Lang,
-  ) {
-    const safeLang: Lang = lang === 'es' ? 'es' : 'en';
-    return this.recipesService.getRecipeDetails(id, safeLang);
+    @Param() params: RecipeIdParamDto,
+    @Query() query: LangQueryDto,
+  ): Promise<RecipeDetailResponseDto> {
+    const safeLang: Lang = query.lang === 'es' ? 'es' : 'en';
+    return this.recipesService.getRecipeDetails(params.id, safeLang);
   }
 
-  @ApiOperation({
-    summary: 'Obtener recetas similares',
-    description: 'Devuelve recetas relacionadas según Spoonacular',
-  })
-  @ApiParam({
-    name: 'id',
-    type: Number,
-    description: 'ID de receta de Spoonacular',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado de recetas similares',
-    schema: { example: SIMILAR_RECIPES_RESPONSE_EXAMPLE },
-  })
+  @ApiSimilarRecipes()
   @Get(':id/similar')
-  getSimilarRecipes(@Param('id', ParseIntPipe) id: number) {
-    return this.recipesService.getSimilarRecipe(id);
+  getSimilarRecipes(
+    @Param() params: RecipeIdParamDto,
+  ): Promise<SimilarRecipeResponseDto[]> {
+    return this.recipesService.getSimilarRecipe(params.id);
   }
 
-  @ApiOperation({
-    summary: 'Obtener todas las recetas almacenadas',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Listado de recetas en base de datos',
-  })
+  @ApiStoredRecipes()
   @Get()
-  getAllRecipes() {
+  getAllRecipes(): Promise<RecipeSummaryResponseDto[]> {
     return this.recipesService.getAllRecipes();
   }
 
-  @ApiOperation({
-    summary: 'Obtener ingredientes para recetas',
-    description:
-      'Devuelve los ingredientes agrupados por receta. Traduce y persiste si corresponde.',
-  })
-  @ApiBody({
-    schema: INGREDIENTS_SCHEMA,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Ingredientes por receta',
-    schema: { example: INGREDIENTS_RESPONSE_EXAMPLE },
-  })
+  @ApiRecipeIngredients()
   @Post('ingredients')
   getIngredients(
-    @Body()
-    body: {
-      sourceIds: number[];
-      lang?: Lang;
-    },
-  ) {
+    @Body() body: IngredientsRequestDto,
+  ): Promise<RecipeIngredientsResponseDto[]> {
     const safeLang: Lang = body.lang === 'es' ? 'es' : 'en';
     return this.recipesService.getIngredientsForRecipes(
       body.sourceIds,

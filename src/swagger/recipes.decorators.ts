@@ -52,7 +52,8 @@ export function ApiSearchRecipes() {
   return applyDecorators(
     ApiOperation({
       summary: 'Search recipes',
-      description: 'Searches recipes by text using Spoonacular.',
+      description:
+        'Searches recipes by text using Spoonacular. Spanish queries are translated to English before provider lookup.',
     }),
     ApiOkResponse({
       description: 'Recipes matching the provided query.',

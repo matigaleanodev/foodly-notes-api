@@ -69,4 +69,13 @@ describe('TranslationService', () => {
     expect(result.instructions[0].steps[0].text).toBe('Paso 1');
     expect(result.ingredients[0].name).toBe('Sal');
   });
+
+  it('debería traducir una query de búsqueda a inglés', async () => {
+    azure.translate.mockResolvedValue(['chicken soup']);
+
+    const result = await service.translateSearchQueryToEnglish('sopa de pollo');
+
+    expect(azure.translate).toHaveBeenCalledWith(['sopa de pollo'], 'en');
+    expect(result).toBe('chicken soup');
+  });
 });

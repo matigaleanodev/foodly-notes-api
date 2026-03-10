@@ -38,7 +38,8 @@ export class RecipesController {
   searchRecipes(
     @Query() query: SearchRecipesQueryDto,
   ): Promise<RecipeSummaryResponseDto[]> {
-    return this.recipesService.searchRecipes(query.q);
+    const safeLang: Lang = query.lang === 'es' ? 'es' : 'en';
+    return this.recipesService.searchRecipes(query.q, safeLang);
   }
 
   @ApiRecipeDetails()

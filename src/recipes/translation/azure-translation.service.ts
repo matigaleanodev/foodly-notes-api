@@ -6,6 +6,8 @@ import axios from 'axios';
 const AZURE_TRANSLATOR_BASE_URL =
   'https://api.cognitive.microsofttranslator.com/translate';
 
+export type TranslationTargetLang = 'en' | 'es';
+
 @Injectable()
 export class AzureTranslationService {
   constructor(
@@ -31,7 +33,10 @@ export class AzureTranslationService {
     return `${configuredEndpoint.replace(/\/+$/, '')}/translate`;
   }
 
-  async translate(texts: string[], targetLang: 'es'): Promise<string[]> {
+  async translate(
+    texts: string[],
+    targetLang: TranslationTargetLang,
+  ): Promise<string[]> {
     if (!texts.length) return [];
 
     try {

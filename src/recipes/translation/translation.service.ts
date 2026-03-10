@@ -6,6 +6,11 @@ import { AzureTranslationService } from './azure-translation.service';
 export class TranslationService {
   constructor(private readonly azure: AzureTranslationService) {}
 
+  async translateSearchQueryToEnglish(query: string): Promise<string> {
+    const [translatedQuery] = await this.azure.translate([query], 'en');
+    return translatedQuery;
+  }
+
   async translateRecipeToSpanish(doc: RecipeDocument) {
     const recipe = doc.toObject();
 

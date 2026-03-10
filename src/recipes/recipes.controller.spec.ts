@@ -7,6 +7,7 @@ describe('RecipesController', () => {
 
   const recipesServiceMock = {
     getDailyRecipes: jest.fn(),
+    searchRecipes: jest.fn(),
     getRecipeDetails: jest.fn(),
     getSimilarRecipe: jest.fn(),
     getAllRecipes: jest.fn(),
@@ -66,6 +67,29 @@ describe('RecipesController', () => {
     await controller.getRecipeDetails({ id: 1 }, { lang: 'es' });
 
     expect(recipesServiceMock.getRecipeDetails).toHaveBeenCalledWith(1, 'es');
+  });
+
+  it('searchRecipes debería usar lang en por defecto', async () => {
+    recipesServiceMock.searchRecipes.mockResolvedValue(['search']);
+
+    const result = await controller.searchRecipes({ q: 'pasta' });
+
+    expect(recipesServiceMock.searchRecipes).toHaveBeenCalledWith(
+      'pasta',
+      'en',
+    );
+    expect(result).toEqual(['search']);
+  });
+
+  it('searchRecipes debería aceptar lang es', async () => {
+    recipesServiceMock.searchRecipes.mockResolvedValue(['search-es']);
+
+    await controller.searchRecipes({ q: 'pastas', lang: 'es' });
+
+    expect(recipesServiceMock.searchRecipes).toHaveBeenCalledWith(
+      'pastas',
+      'es',
+    );
   });
 
   it('getSimilarRecipes debería llamar al service', async () => {

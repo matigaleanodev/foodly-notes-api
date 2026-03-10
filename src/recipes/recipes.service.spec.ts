@@ -29,6 +29,7 @@ describe('RecipesService', () => {
 
   const translationServiceMock = {
     translateRecipeToSpanish: jest.fn(),
+    translateSearchQueryToEnglish: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -226,5 +227,52 @@ describe('RecipesService', () => {
       title: 'Title',
       ingredients: ['base-ingredients'],
     });
+  });
+
+  it('searchRecipes debería usar la query original en inglés', async () => {
+    spoonacularServiceMock.searchRecipes.mockResolvedValue([
+      { id: 1, title: 'Pasta', image: 'pasta.jpg' },
+    ]);
+
+    const result = await service.searchRecipes('pasta', 'en');
+
+    expect(translationServiceMock.translateSearchQueryToEnglish).not.toHaveBeenCalled();
+    expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith('pasta');
+    expect(result[0]).toEqual({
+      sourceId: 1,
+      title: 'Pasta',
+      image: 'pasta.jpg',
+    });
+  });
+
+  it('searchRecipes debería traducir la query en español antes de buscar', async () => {
+    translationServiceMock.translateSearchQueryToEnglish.mockResolvedValue(
+      'chicken soup',
+    );
+    spoonacularServiceMock.searchRecipes.mockResolvedValue([
+      { id: 2, title: 'Chicken Soup', image: 'soup.jpg' },
+    ]);
+
+    await service.searchRecipes('sopa de pollo', 'es');
+
+    expect(translationServiceMock.translateSearchQueryToEnglish).toHaveBeenCalledWith(
+      'sopa de pollo',
+    );
+    expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith(
+      'chicken soup',
+    );
+  });
+
+  it('searchRecipes debería volver a la query original si falla la traducción', async () => {
+    translationServiceMock.translateSearchQueryToEnglish.mockRejectedValue(
+      new Error('azure down'),
+    );
+    spoonacularServiceMock.searchRecipes.mockResolvedValue([]);
+
+    await service.searchRecipes('sopa de pollo', 'es');
+
+    expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith(
+      'sopa de pollo',
+    );
   });
 });

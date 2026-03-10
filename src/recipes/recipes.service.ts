@@ -79,8 +79,14 @@ export class RecipesService {
     return recipes.map((recipe) => mapRecipeIngredientsResponse(recipe, lang));
   }
 
-  async searchRecipes(query: string) {
-    const results = await this.spoonacularService.searchRecipes(query);
+  async searchRecipes(query: string, lang: Lang = 'en') {
+    const normalizedQuery =
+      lang === 'es'
+        ? await this.translateSearchQueryToEnglish(query)
+        : query;
+    const results = await this.spoonacularService.searchRecipes(
+      normalizedQuery,
+    );
 
     return results.map(mapSearchRecipeSummary);
   }
@@ -129,5 +135,13 @@ export class RecipesService {
     }
 
     return recipe;
+  }
+
+  private async translateSearchQueryToEnglish(query: string): Promise<string> {
+    try {
+      return await this.translationService.translateSearchQueryToEnglish(query);
+    } catch {
+      return query;
+    }
   }
 }

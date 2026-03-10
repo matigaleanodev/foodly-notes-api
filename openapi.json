@@ -92,7 +92,7 @@
     },
     "/api/recipes/search": {
       "get": {
-        "description": "Searches recipes by text using Spoonacular.",
+        "description": "Searches recipes by text using Spoonacular. Spanish queries are translated to English before provider lookup.",
         "operationId": "RecipesController_searchRecipes",
         "parameters": [
           {
@@ -103,6 +103,20 @@
             "schema": {
               "example": "pasta",
               "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Search query language. Spanish queries are translated to English before provider lookup.",
+            "schema": {
+              "example": "es",
+              "type": "string",
+              "enum": [
+                "en",
+                "es"
+              ]
             }
           }
         ],

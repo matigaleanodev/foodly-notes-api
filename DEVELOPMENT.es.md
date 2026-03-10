@@ -55,6 +55,7 @@ El OpenAPI JSON queda disponible en `http://localhost:3000/openapi.json`.
 npm run test
 npm run test:e2e
 npm run build
+npm run smoke
 ```
 
 ## Estrategia de traducción

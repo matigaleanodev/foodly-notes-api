@@ -155,6 +155,10 @@ For environment strategy and smoke checks, see:
 
 👉 [docs/operations.md](./docs/operations.md)
 
+Manual smoke checks:
+
+`npm run smoke`
+
 Swagger UI: `GET /docs`
 
 OpenAPI JSON: `GET /openapi.json`

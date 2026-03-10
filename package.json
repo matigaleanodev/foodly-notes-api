@@ -9,6 +9,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "generate:openapi": "node scripts/generate-openapi.js",
     "generate:postman": "npm run generate:openapi && openapi2postmanv2 -s openapi.json -o postman-collection.json -p",
+    "smoke": "node scripts/smoke-checks.js",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

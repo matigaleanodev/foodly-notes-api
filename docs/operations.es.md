@@ -89,3 +89,24 @@ npm run build
 ```
 
 Estos comandos validan calidad de código y estabilidad de contratos, pero no reemplazan los smoke checks runtime sobre infraestructura desplegada.
+
+## Script de smoke checks
+
+El repositorio incluye un comando ejecutable para smoke checks:
+
+```bash
+API_BASE_URL=https://api.foodlynotes.app npm run smoke
+```
+
+Base URL por defecto:
+
+- `http://localhost:3000`
+
+Checks cubiertos por el script:
+
+- `GET /api/health`
+- `GET /openapi.json`
+- `GET /api/recipes`
+- `GET /api/recipes/search?q=pasta`
+- `GET /api/recipes/search?q=sopa&lang=es`
+- `GET /api/recipes/daily?lang=es`

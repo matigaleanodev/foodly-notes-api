@@ -151,6 +151,10 @@ For functional boundaries and external dependencies, see:
 
 👉 [docs/backend-scope.md](./docs/backend-scope.md)
 
+For environment strategy and smoke checks, see:
+
+👉 [docs/operations.md](./docs/operations.md)
+
 Swagger UI: `GET /docs`
 
 OpenAPI JSON: `GET /openapi.json`

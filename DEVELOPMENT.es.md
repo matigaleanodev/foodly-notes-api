@@ -78,3 +78,5 @@ Esto evita llamadas innecesarias al traductor y mejora el rendimiento.
 - Las llamadas a proveedores externos se reducen con persistencia y cache diario.
 - `CORS_ORIGIN` debería restringirse por entorno fuera del desarrollo local cuando no haga falta acceso abierto.
 - La app está lista para containerización y despliegue en cloud.
+
+Para la estrategia por entorno y los smoke checks, ver [docs/operations.es.md](./docs/operations.es.md).

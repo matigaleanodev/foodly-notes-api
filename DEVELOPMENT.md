@@ -78,3 +78,5 @@ This avoids unnecessary translation calls and improves performance.
 - Provider calls are minimized through persistence and daily caching.
 - `CORS_ORIGIN` should be restricted per environment outside local development when open access is not required.
 - The app is ready for containerization and cloud deployment.
+
+For environment strategy and smoke checks, see [docs/operations.md](./docs/operations.md).

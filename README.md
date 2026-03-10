@@ -151,6 +151,10 @@ Para límites funcionales y dependencias externas, consulta:
 
 👉 [docs/backend-scope.es.md](./docs/backend-scope.es.md)
 
+Para estrategia por entorno y smoke checks, consulta:
+
+👉 [docs/operations.es.md](./docs/operations.es.md)
+
 Swagger UI: `GET /docs`
 
 OpenAPI JSON: `GET /openapi.json`

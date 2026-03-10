@@ -37,7 +37,8 @@ export function ApiDailyRecipes() {
       example: dailyRecipesResponseExample,
     }),
     ApiBadGatewayResponse({
-      description: 'Recipe provider is unavailable and no cached daily recipes exist.',
+      description:
+        'Recipe provider is unavailable and no cached daily recipes exist.',
       type: ErrorResponseDto,
       example: {
         statusCode: 502,
@@ -213,7 +214,8 @@ export function ApiRecipeIngredients() {
       },
     }),
     ApiNotFoundResponse({
-      description: 'At least one requested recipe does not exist in the provider.',
+      description:
+        'At least one requested recipe does not exist in the provider.',
       type: ErrorResponseDto,
       example: {
         statusCode: 404,

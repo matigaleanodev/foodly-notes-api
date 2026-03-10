@@ -116,9 +116,9 @@ describe('RecipesService', () => {
         ],
       }),
     });
-    translationServiceMock.translateTexts = jest.fn().mockResolvedValue([
-      'Sopa de pollo',
-    ]);
+    translationServiceMock.translateTexts = jest
+      .fn()
+      .mockResolvedValue(['Sopa de pollo']);
 
     const result = await service.getDailyRecipes('es');
 
@@ -273,7 +273,9 @@ describe('RecipesService', () => {
 
     const result = await service.searchRecipes('pasta', 'en');
 
-    expect(translationServiceMock.translateSearchQueryToEnglish).not.toHaveBeenCalled();
+    expect(
+      translationServiceMock.translateSearchQueryToEnglish,
+    ).not.toHaveBeenCalled();
     expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith('pasta');
     expect(result[0]).toEqual({
       sourceId: 1,
@@ -292,9 +294,9 @@ describe('RecipesService', () => {
 
     await service.searchRecipes('sopa de pollo', 'es');
 
-    expect(translationServiceMock.translateSearchQueryToEnglish).toHaveBeenCalledWith(
-      'sopa de pollo',
-    );
+    expect(
+      translationServiceMock.translateSearchQueryToEnglish,
+    ).toHaveBeenCalledWith('sopa de pollo');
     expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith(
       'chicken soup',
     );
@@ -330,9 +332,7 @@ describe('RecipesService', () => {
     spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
       { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
     ]);
-    translationServiceMock.translateTexts.mockResolvedValue([
-      'Receta similar',
-    ]);
+    translationServiceMock.translateTexts.mockResolvedValue(['Receta similar']);
 
     const result = await service.getSimilarRecipe(1, 'es');
 

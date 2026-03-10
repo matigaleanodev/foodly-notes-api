@@ -24,7 +24,9 @@ export class AzureTranslationService {
   }
 
   private get endpoint(): string {
-    const configuredEndpoint = this.config.get<string>('AZURE_TRANSLATOR_ENDPOINT');
+    const configuredEndpoint = this.config.get<string>(
+      'AZURE_TRANSLATOR_ENDPOINT',
+    );
 
     if (!configuredEndpoint?.trim()) {
       return AZURE_TRANSLATOR_BASE_URL;

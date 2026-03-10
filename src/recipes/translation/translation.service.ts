@@ -38,7 +38,10 @@ export class TranslationService {
     const missingTexts = texts.filter((text) => !cacheBySourceText.has(text));
 
     if (missingTexts.length) {
-      const translatedTexts = await this.azure.translate(missingTexts, targetLang);
+      const translatedTexts = await this.azure.translate(
+        missingTexts,
+        targetLang,
+      );
 
       await Promise.all(
         missingTexts.map((sourceText, index) =>

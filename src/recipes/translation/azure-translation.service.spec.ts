@@ -60,7 +60,8 @@ describe('AzureTranslationService', () => {
   });
 
   it('debería traducir una lista de textos', async () => {
-    (httpService.axiosRef.post as jest.Mock).mockResolvedValueOnce({
+    const postMock = jest.spyOn(httpService.axiosRef, 'post');
+    postMock.mockResolvedValueOnce({
       data: [
         { translations: [{ text: 'Hola' }] },
         { translations: [{ text: 'Mundo' }] },
@@ -70,7 +71,7 @@ describe('AzureTranslationService', () => {
     const result = await service.translate(['Hello', 'World'], 'es');
 
     expect(result).toEqual(['Hola', 'Mundo']);
-    expect(httpService.axiosRef.post).toHaveBeenCalledWith(
+    expect(postMock).toHaveBeenCalledWith(
       'https://custom-translator.cognitiveservices.azure.com/translate',
       [{ text: 'Hello' }, { text: 'World' }],
       expect.any(Object),
@@ -95,14 +96,15 @@ describe('AzureTranslationService', () => {
   });
 
   it('debería usar el endpoint por defecto cuando la configuración no existe', async () => {
+    const postMock = jest.spyOn(httpService.axiosRef, 'post');
     jest.spyOn(configService, 'get').mockReturnValueOnce(undefined);
-    jest.spyOn(httpService.axiosRef, 'post').mockResolvedValueOnce({
+    postMock.mockResolvedValueOnce({
       data: [{ translations: [{ text: 'Hola' }] }],
     });
 
     await service.translate(['Hello'], 'es');
 
-    expect(httpService.axiosRef.post).toHaveBeenCalledWith(
+    expect(postMock).toHaveBeenCalledWith(
       'https://api.cognitive.microsofttranslator.com/translate',
       [{ text: 'Hello' }],
       expect.any(Object),

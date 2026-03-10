@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMinSize,
+  ArrayUnique,
   IsArray,
   IsIn,
   IsInt,
@@ -22,6 +23,7 @@ export class IngredientsRequestDto {
   })
   @IsArray()
   @ArrayMinSize(1)
+  @ArrayUnique()
   @Type(() => Number)
   @IsInt({ each: true })
   @Min(1, { each: true })
@@ -32,6 +34,9 @@ export class IngredientsRequestDto {
     example: recipeLangExample,
     description: 'Response language.',
   })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   @IsOptional()
   @IsIn(['en', 'es'])
   lang?: 'en' | 'es';

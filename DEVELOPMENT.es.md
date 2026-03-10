@@ -18,8 +18,11 @@ PORT=3000
 
 MONGO_URI=mongodb://localhost:27017/foodly-notes
 
-# Usá * para mantener CORS abierto o una allowlist separada por comas.
-CORS_ORIGIN=*
+# Origen web de producción: https://foodlynotes.app
+# Origen de Capacitor Android: http://localhost
+# Origen de Capacitor iOS: capacitor://localhost
+# Usá una allowlist separada por comas y sin trailing slash.
+CORS_ORIGIN=https://foodlynotes.app,http://localhost,capacitor://localhost
 
 SPOONACULAR_API_KEY=your_spoonacular_key
 SPOONACULAR_BASE_URL=https://api.spoonacular.com
@@ -30,6 +33,8 @@ AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com
 ```
 
 `AZURE_TRANSLATOR_ENDPOINT` debe apuntar a la raíz del servicio. La API agrega `/translate` internamente.
+
+Para producción de Foodly Notes conviene usar una allowlist explícita en `CORS_ORIGIN` en lugar de `*`. El valor recomendado hoy es `https://foodlynotes.app,http://localhost,capacitor://localhost`.
 
 ## Ejecución local
 

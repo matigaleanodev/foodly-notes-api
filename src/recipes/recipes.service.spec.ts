@@ -148,6 +148,32 @@ describe('RecipesService', () => {
     expect(result.title).toBe('Título');
   });
 
+  it('getRecipeDetails debería volver a ingles si falla la traducción', async () => {
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          summary: 'Summary',
+          instructions: [],
+          ingredients: [],
+        },
+        meta: {},
+        translations: {},
+        save: jest.fn(),
+      }),
+    });
+
+    translationServiceMock.translateRecipeToSpanish.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getRecipeDetails(1, 'es');
+
+    expect(result.title).toBe('Title');
+    expect(result.lang).toBe('en');
+  });
+
   it('getIngredientsForRecipes debería devolver ingredientes en español', async () => {
     const saveMock = jest.fn();
 
@@ -174,5 +200,31 @@ describe('RecipesService', () => {
     const result = await service.getIngredientsForRecipes([1], 'es');
 
     expect(result[0].title).toBe('Título');
+  });
+
+  it('getIngredientsForRecipes debería volver a ingles si falla la traducción', async () => {
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          ingredients: ['base-ingredients'],
+        },
+        translations: {},
+        save: jest.fn(),
+      }),
+    });
+
+    translationServiceMock.translateRecipeToSpanish.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getIngredientsForRecipes([1], 'es');
+
+    expect(result[0]).toEqual({
+      sourceId: 1,
+      title: 'Title',
+      ingredients: ['base-ingredients'],
+    });
   });
 });

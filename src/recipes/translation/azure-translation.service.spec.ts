@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AzureTranslationService } from './azure-translation.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { BadGatewayException } from '@nestjs/common';
 
 describe('AzureTranslationService', () => {
   let service: AzureTranslationService;
@@ -105,6 +106,16 @@ describe('AzureTranslationService', () => {
       'https://api.cognitive.microsofttranslator.com/translate',
       [{ text: 'Hello' }],
       expect.any(Object),
+    );
+  });
+
+  it('debería mapear errores axios a BadGatewayException', async () => {
+    jest.spyOn(httpService.axiosRef, 'post').mockRejectedValueOnce({
+      isAxiosError: true,
+    });
+
+    await expect(service.translate(['Hello'], 'es')).rejects.toBeInstanceOf(
+      BadGatewayException,
     );
   });
 });

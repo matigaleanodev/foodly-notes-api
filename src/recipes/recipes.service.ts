@@ -54,18 +54,22 @@ export class RecipesService {
 
     if (lang === 'es') {
       if (!recipe.translations?.es) {
-        const translated =
-          await this.translationService.translateRecipeToSpanish(recipe);
+        try {
+          const translated =
+            await this.translationService.translateRecipeToSpanish(recipe);
 
-        recipe.translations = {
-          ...recipe.translations,
-          es: {
-            ...translated,
-            translatedAt: new Date(),
-          },
-        };
+          recipe.translations = {
+            ...recipe.translations,
+            es: {
+              ...translated,
+              translatedAt: new Date(),
+            },
+          };
 
-        await recipe.save();
+          await recipe.save();
+        } catch {
+          return this.buildRecipeResponse(recipe, 'en');
+        }
       }
 
       return this.buildTranslatedRecipeResponse(recipe, 'es');
@@ -87,18 +91,22 @@ export class RecipesService {
       await Promise.all(
         recipes.map(async (recipe) => {
           if (!recipe.translations?.es) {
-            const translated =
-              await this.translationService.translateRecipeToSpanish(recipe);
+            try {
+              const translated =
+                await this.translationService.translateRecipeToSpanish(recipe);
 
-            recipe.translations = {
-              ...recipe.translations,
-              es: {
-                ...translated,
-                translatedAt: new Date(),
-              },
-            };
+              recipe.translations = {
+                ...recipe.translations,
+                es: {
+                  ...translated,
+                  translatedAt: new Date(),
+                },
+              };
 
-            await recipe.save();
+              await recipe.save();
+            } catch {
+              return;
+            }
           }
         }),
       );

@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 const AZURE_TRANSLATOR_BASE_URL =
   'https://api.cognitive.microsofttranslator.com/translate';
@@ -33,26 +34,34 @@ export class AzureTranslationService {
   async translate(texts: string[], targetLang: 'es'): Promise<string[]> {
     if (!texts.length) return [];
 
-    const { data } = await this.httpService.axiosRef.post<
-      {
-        translations: { text: string }[];
-      }[]
-    >(
-      this.endpoint,
-      texts.map((text) => ({ text })),
-      {
-        params: {
-          'api-version': '3.0',
-          to: targetLang,
+    try {
+      const { data } = await this.httpService.axiosRef.post<
+        {
+          translations: { text: string }[];
+        }[]
+      >(
+        this.endpoint,
+        texts.map((text) => ({ text })),
+        {
+          params: {
+            'api-version': '3.0',
+            to: targetLang,
+          },
+          headers: {
+            'Ocp-Apim-Subscription-Key': this.apiKey,
+            'Ocp-Apim-Subscription-Region': this.region,
+            'Content-Type': 'application/json',
+          },
         },
-        headers: {
-          'Ocp-Apim-Subscription-Key': this.apiKey,
-          'Ocp-Apim-Subscription-Region': this.region,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+      );
 
-    return data.map((item) => item.translations[0].text);
+      return data.map((item) => item.translations[0].text);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new BadGatewayException('Translation provider unavailable.');
+      }
+
+      throw error;
+    }
   }
 }

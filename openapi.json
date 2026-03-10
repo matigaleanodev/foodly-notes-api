@@ -1,6 +1,32 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/health": {
+      "get": {
+        "description": "Returns a simple status response for operational checks.",
+        "operationId": "HealthController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                },
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Health check",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
     "/api/recipes/daily": {
       "get": {
         "description": "Returns daily recipes with ingredients and daily cache support.",
@@ -39,6 +65,21 @@
                     "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
                   }
                 ]
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable and no cached daily recipes exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
               }
             }
           }
@@ -83,6 +124,38 @@
                     "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
                   }
                 ]
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "q must be longer than or equal to 1 characters"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
               }
             }
           }
@@ -173,6 +246,53 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "id must not be less than 1"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe does not exist in the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Recipe not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable. Translation provider failures fall back to English content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
           }
         },
         "summary": "Get recipe details",
@@ -215,6 +335,53 @@
                     "image": "https://img.spoonacular.com/recipes/123-556x370.jpg"
                   }
                 ]
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "id must not be less than 1"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe does not exist in the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Recipe not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
               }
             }
           }
@@ -313,6 +480,53 @@
                 ]
               }
             }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "sourceIds must contain unique values"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "At least one requested recipe does not exist in the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Recipe not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable. Translation provider failures fall back to stored or English ingredient data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
           }
         },
         "summary": "Get recipe ingredients",
@@ -332,6 +546,19 @@
   "servers": [],
   "components": {
     "schemas": {
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok",
+            "description": "Service health status."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
       "RecipeSummaryResponseDto": {
         "type": "object",
         "properties": {
@@ -352,6 +579,31 @@
         "required": [
           "sourceId",
           "title"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 502,
+            "description": "HTTP status code."
+          },
+          "message": {
+            "type": "string",
+            "example": "Recipe provider unavailable.",
+            "description": "Human-readable error message."
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Gateway",
+            "description": "HTTP error label."
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
         ]
       },
       "RecipeInstructionStepDto": {

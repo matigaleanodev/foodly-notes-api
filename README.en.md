@@ -124,3 +124,7 @@ Body:
 For local setup, environment variables, and development guidelines:
 
 👉 [DEVELOPMENT.md](./DEVELOPMENT.md)
+
+Swagger UI: `GET /docs`
+
+OpenAPI JSON: `GET /openapi.json`

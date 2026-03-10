@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import { APP_VERSION } from '../config/app-metadata';
 
 export function buildSwaggerDocument(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
@@ -8,7 +9,7 @@ export function buildSwaggerDocument(app: INestApplication): OpenAPIObject {
     .setDescription(
       'Backend API for recipe search, translation support, and ingredient aggregation.',
     )
-    .setVersion('1.0.3')
+    .setVersion(APP_VERSION)
     .build();
 
   return SwaggerModule.createDocument(app, config);

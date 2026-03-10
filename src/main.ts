@@ -2,18 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { setupSwagger } from './swagger/swagger.config';
+import { resolveCorsOrigins } from './config/cors.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
-  const corsOrigins = '*';
-
-  //process.env.CORS_ORIGIN?.split(',') ?? [];
-
   app.enableCors({
-    origin: corsOrigins,
+    origin: resolveCorsOrigins(),
   });
 
   app.useGlobalPipes(

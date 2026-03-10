@@ -23,7 +23,6 @@ export class RecipesService {
 
   async getDailyRecipes(lang: Lang = 'en') {
     const today = this.getToday();
-    console.log(lang);
     const cached = await this.dailyRecipeModel.findOne({ date: today }).exec();
 
     if (cached) {

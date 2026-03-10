@@ -124,3 +124,7 @@ Body:
 Para instrucciones de configuración y desarrollo, consulta:
 
 👉 [DEVELOPMENT.md](./DEVELOPMENT.md)
+
+Swagger UI: `GET /docs`
+
+OpenAPI JSON: `GET /openapi.json`

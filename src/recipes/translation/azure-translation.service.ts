@@ -20,6 +20,16 @@ export class AzureTranslationService {
     return this.config.getOrThrow<string>('AZURE_TRANSLATOR_REGION');
   }
 
+  private get endpoint(): string {
+    const configuredEndpoint = this.config.get<string>('AZURE_TRANSLATOR_ENDPOINT');
+
+    if (!configuredEndpoint?.trim()) {
+      return AZURE_TRANSLATOR_BASE_URL;
+    }
+
+    return `${configuredEndpoint.replace(/\/+$/, '')}/translate`;
+  }
+
   async translate(texts: string[], targetLang: 'es'): Promise<string[]> {
     if (!texts.length) return [];
 
@@ -28,7 +38,7 @@ export class AzureTranslationService {
         translations: { text: string }[];
       }[]
     >(
-      AZURE_TRANSLATOR_BASE_URL,
+      this.endpoint,
       texts.map((text) => ({ text })),
       {
         params: {

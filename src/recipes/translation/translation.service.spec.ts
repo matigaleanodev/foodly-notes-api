@@ -1,16 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/mongoose';
 import { TranslationService } from './translation.service';
 import { AzureTranslationService } from './azure-translation.service';
 import { RecipeDocument } from '../schemas/recipe.schema';
+import { TranslationEntry } from '../schemas/translation-entry.schema';
 
 describe('TranslationService', () => {
   let service: TranslationService;
   let azure: jest.Mocked<AzureTranslationService>;
+  const translationEntryModelMock = {
+    find: jest.fn(),
+    updateOne: jest.fn(),
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
         TranslationService,
+        {
+          provide: getModelToken(TranslationEntry.name),
+          useValue: translationEntryModelMock,
+        },
         {
           provide: AzureTranslationService,
           useValue: {
@@ -22,6 +34,13 @@ describe('TranslationService', () => {
 
     service = moduleRef.get(TranslationService);
     azure = moduleRef.get(AzureTranslationService);
+
+    translationEntryModelMock.find.mockReturnValue({
+      exec: jest.fn().mockResolvedValue([]),
+    });
+    translationEntryModelMock.updateOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(undefined),
+    });
   });
 
   it('debería estar definido', () => {
@@ -77,5 +96,40 @@ describe('TranslationService', () => {
 
     expect(azure.translate).toHaveBeenCalledWith(['sopa de pollo'], 'en');
     expect(result).toBe('chicken soup');
+  });
+
+  it('debería reutilizar cache de traducciones antes de llamar a Azure', async () => {
+    translationEntryModelMock.find.mockReturnValue({
+      exec: jest.fn().mockResolvedValue([
+        {
+          sourceText: 'Chicken Soup',
+          translatedText: 'Sopa de pollo',
+        },
+      ]),
+    });
+
+    const result = await service.translateTexts(['Chicken Soup'], 'es');
+
+    expect(azure.translate).not.toHaveBeenCalled();
+    expect(result).toEqual(['Sopa de pollo']);
+  });
+
+  it('debería persistir textos faltantes luego de traducirlos', async () => {
+    azure.translate.mockResolvedValue(['Sopa de pollo']);
+
+    const result = await service.translateTexts(['Chicken Soup'], 'es');
+
+    expect(translationEntryModelMock.updateOne).toHaveBeenCalledWith(
+      { sourceText: 'Chicken Soup', targetLang: 'es' },
+      {
+        $set: {
+          sourceText: 'Chicken Soup',
+          targetLang: 'es',
+          translatedText: 'Sopa de pollo',
+        },
+      },
+      { upsert: true },
+    );
+    expect(result).toEqual(['Sopa de pollo']);
   });
 });

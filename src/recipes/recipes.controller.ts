@@ -56,8 +56,10 @@ export class RecipesController {
   @Get(':id/similar')
   getSimilarRecipes(
     @Param() params: RecipeIdParamDto,
+    @Query() query: LangQueryDto,
   ): Promise<SimilarRecipeResponseDto[]> {
-    return this.recipesService.getSimilarRecipe(params.id);
+    const safeLang: Lang = query.lang === 'es' ? 'es' : 'en';
+    return this.recipesService.getSimilarRecipe(params.id, safeLang);
   }
 
   @ApiStoredRecipes()

@@ -34,7 +34,7 @@ export class RecipesService {
     const cached = await this.dailyRecipeModel.findOne({ date: today }).exec();
 
     if (cached) {
-      return cached.recipes;
+      return this.buildDailyRecipeResponse(cached.recipes, lang);
     }
 
     const spoonacularRecipes = await this.spoonacularService.getDailyRecipes();
@@ -45,7 +45,7 @@ export class RecipesService {
       recipes,
     });
 
-    return recipes;
+    return this.buildDailyRecipeResponse(recipes, lang);
   }
 
   private getToday(): string {
@@ -57,14 +57,19 @@ export class RecipesService {
     const translatedRecipe = await this.ensureSpanishTranslation(recipe);
 
     if (lang === 'es') {
-      return mapRecipeDetailResponse(translatedRecipe, translatedRecipe.translations?.es ? 'es' : 'en');
+      return mapRecipeDetailResponse(
+        translatedRecipe,
+        translatedRecipe.translations?.es ? 'es' : 'en',
+      );
     }
 
     return mapRecipeDetailResponse(recipe, 'en');
   }
 
-  async getSimilarRecipe(sourceId: number) {
-    return this.spoonacularService.getSimilarRecipes(sourceId);
+  async getSimilarRecipe(sourceId: number, lang: Lang = 'en') {
+    const recipes = await this.spoonacularService.getSimilarRecipes(sourceId);
+
+    return this.translateRecipeSummaries(recipes, lang);
   }
 
   async getIngredientsForRecipes(sourceIds: number[], lang: Lang = 'en') {
@@ -73,7 +78,9 @@ export class RecipesService {
     );
 
     if (lang === 'es') {
-      await Promise.all(recipes.map((recipe) => this.ensureSpanishTranslation(recipe)));
+      await Promise.all(
+        recipes.map((recipe) => this.ensureSpanishTranslation(recipe)),
+      );
     }
 
     return recipes.map((recipe) => mapRecipeIngredientsResponse(recipe, lang));
@@ -81,12 +88,9 @@ export class RecipesService {
 
   async searchRecipes(query: string, lang: Lang = 'en') {
     const normalizedQuery =
-      lang === 'es'
-        ? await this.translateSearchQueryToEnglish(query)
-        : query;
-    const results = await this.spoonacularService.searchRecipes(
-      normalizedQuery,
-    );
+      lang === 'es' ? await this.translateSearchQueryToEnglish(query) : query;
+    const results =
+      await this.spoonacularService.searchRecipes(normalizedQuery);
 
     return results.map(mapSearchRecipeSummary);
   }
@@ -107,7 +111,9 @@ export class RecipesService {
     const spoonacularRecipe =
       await this.spoonacularService.getRecipeById(sourceId);
 
-    return this.recipeModel.create(mapRecipePersistence(sourceId, spoonacularRecipe));
+    return this.recipeModel.create(
+      mapRecipePersistence(sourceId, spoonacularRecipe),
+    );
   }
 
   private async ensureSpanishTranslation(
@@ -143,5 +149,42 @@ export class RecipesService {
     } catch {
       return query;
     }
+  }
+
+  private async translateRecipeSummaries<
+    T extends {
+      sourceId: number;
+      title: string;
+      image: string | null;
+    },
+  >(recipes: T[], lang: Lang): Promise<T[]> {
+    if (lang !== 'es') {
+      return recipes;
+    }
+
+    try {
+      const translatedTitles = await this.translationService.translateTexts(
+        recipes.map((recipe) => recipe.title),
+        'es',
+      );
+
+      return recipes.map((recipe, index) => ({
+        ...recipe,
+        title: translatedTitles[index],
+      }));
+    } catch {
+      return recipes;
+    }
+  }
+
+  private async buildDailyRecipeResponse(
+    recipes: {
+      sourceId: number;
+      title: string;
+      image: string;
+    }[],
+    lang: Lang,
+  ) {
+    return this.translateRecipeSummaries(recipes, lang);
   }
 }

@@ -95,10 +95,18 @@ describe('RecipesController', () => {
   it('getSimilarRecipes debería llamar al service', async () => {
     recipesServiceMock.getSimilarRecipe.mockResolvedValue(['similar']);
 
-    const result = await controller.getSimilarRecipes({ id: 10 });
+    const result = await controller.getSimilarRecipes({ id: 10 }, {});
 
-    expect(recipesServiceMock.getSimilarRecipe).toHaveBeenCalledWith(10);
+    expect(recipesServiceMock.getSimilarRecipe).toHaveBeenCalledWith(10, 'en');
     expect(result).toEqual(['similar']);
+  });
+
+  it('getSimilarRecipes debería aceptar lang es', async () => {
+    recipesServiceMock.getSimilarRecipe.mockResolvedValue(['similar-es']);
+
+    await controller.getSimilarRecipes({ id: 10 }, { lang: 'es' });
+
+    expect(recipesServiceMock.getSimilarRecipe).toHaveBeenCalledWith(10, 'es');
   });
 
   it('getIngredients debería usar lang en por defecto', async () => {

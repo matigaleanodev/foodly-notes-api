@@ -129,7 +129,8 @@ export function ApiSimilarRecipes() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get similar recipes',
-      description: 'Returns recipes related to the provided recipe id.',
+      description:
+        'Returns recipes related to the provided recipe id. Spanish responses translate and cache similar recipe titles.',
     }),
     ApiOkResponse({
       description: 'Similar recipes list.',

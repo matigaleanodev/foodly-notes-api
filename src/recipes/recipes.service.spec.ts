@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { RecipesService } from './recipes.service';
 import { DailyRecipe } from './schemas/daily-recipe.schema';
 import { Recipe } from './schemas/recipe.schema';
+import { TranslationEntry } from './schemas/translation-entry.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
 import { TranslationService } from './translation/translation.service';
 
@@ -30,6 +31,7 @@ describe('RecipesService', () => {
   const translationServiceMock = {
     translateRecipeToSpanish: jest.fn(),
     translateSearchQueryToEnglish: jest.fn(),
+    translateTexts: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -45,6 +47,10 @@ describe('RecipesService', () => {
         {
           provide: getModelToken(Recipe.name),
           useValue: recipeModelMock,
+        },
+        {
+          provide: getModelToken(TranslationEntry.name),
+          useValue: {},
         },
         {
           provide: SpoonacularService,
@@ -96,6 +102,37 @@ describe('RecipesService', () => {
 
     expect(dailyRecipeModelMock.create).toHaveBeenCalled();
     expect(result.length).toBe(1);
+  });
+
+  it('getDailyRecipes debería traducir titulos al español usando cache de traducciones', async () => {
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: [
+          {
+            sourceId: 1,
+            title: 'Chicken Soup',
+            image: 'img',
+          },
+        ],
+      }),
+    });
+    translationServiceMock.translateTexts = jest.fn().mockResolvedValue([
+      'Sopa de pollo',
+    ]);
+
+    const result = await service.getDailyRecipes('es');
+
+    expect(translationServiceMock.translateTexts).toHaveBeenCalledWith(
+      ['Chicken Soup'],
+      'es',
+    );
+    expect(result).toEqual([
+      {
+        sourceId: 1,
+        title: 'Sopa de pollo',
+        image: 'img',
+      },
+    ]);
   });
 
   it('getRecipeDetails debería devolver receta en inglés', async () => {
@@ -274,5 +311,37 @@ describe('RecipesService', () => {
     expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith(
       'sopa de pollo',
     );
+  });
+
+  it('getSimilarRecipe debería devolver títulos originales en inglés', async () => {
+    spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+
+    const result = await service.getSimilarRecipe(1, 'en');
+
+    expect(translationServiceMock.translateTexts).not.toHaveBeenCalled();
+    expect(result).toEqual([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+  });
+
+  it('getSimilarRecipe debería traducir títulos al español con cache', async () => {
+    spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+    translationServiceMock.translateTexts.mockResolvedValue([
+      'Receta similar',
+    ]);
+
+    const result = await service.getSimilarRecipe(1, 'es');
+
+    expect(translationServiceMock.translateTexts).toHaveBeenCalledWith(
+      ['Similar recipe'],
+      'es',
+    );
+    expect(result).toEqual([
+      { sourceId: 3, title: 'Receta similar', image: 'img.jpg' },
+    ]);
   });
 });

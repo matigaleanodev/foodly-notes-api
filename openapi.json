@@ -317,7 +317,7 @@
     },
     "/api/recipes/{id}/similar": {
       "get": {
-        "description": "Returns recipes related to the provided recipe id.",
+        "description": "Returns recipes related to the provided recipe id. Spanish responses translate and cache similar recipe titles.",
         "operationId": "RecipesController_getSimilarRecipes",
         "parameters": [
           {
@@ -328,6 +328,20 @@
             "schema": {
               "example": 636598,
               "type": "number"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Response language.",
+            "schema": {
+              "example": "es",
+              "type": "string",
+              "enum": [
+                "en",
+                "es"
+              ]
             }
           }
         ],

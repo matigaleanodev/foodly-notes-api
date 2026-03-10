@@ -1,13 +1,73 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { RecipeDocument } from '../schemas/recipe.schema';
 import { AzureTranslationService } from './azure-translation.service';
+import {
+  TranslationEntry,
+  TranslationEntryDocument,
+} from '../schemas/translation-entry.schema';
+import { TranslationTargetLang } from './azure-translation.service';
 
 @Injectable()
 export class TranslationService {
-  constructor(private readonly azure: AzureTranslationService) {}
+  constructor(
+    @InjectModel(TranslationEntry.name)
+    private readonly translationEntryModel: Model<TranslationEntryDocument>,
+    private readonly azure: AzureTranslationService,
+  ) {}
+
+  async translateTexts(
+    texts: string[],
+    targetLang: TranslationTargetLang,
+  ): Promise<string[]> {
+    if (!texts.length) {
+      return [];
+    }
+
+    const cacheEntries = await this.translationEntryModel
+      .find({
+        sourceText: { $in: texts },
+        targetLang,
+      })
+      .exec();
+
+    const cacheBySourceText = new Map(
+      cacheEntries.map((entry) => [entry.sourceText, entry.translatedText]),
+    );
+    const missingTexts = texts.filter((text) => !cacheBySourceText.has(text));
+
+    if (missingTexts.length) {
+      const translatedTexts = await this.azure.translate(missingTexts, targetLang);
+
+      await Promise.all(
+        missingTexts.map((sourceText, index) =>
+          this.translationEntryModel
+            .updateOne(
+              { sourceText, targetLang },
+              {
+                $set: {
+                  sourceText,
+                  targetLang,
+                  translatedText: translatedTexts[index],
+                },
+              },
+              { upsert: true },
+            )
+            .exec(),
+        ),
+      );
+
+      missingTexts.forEach((sourceText, index) => {
+        cacheBySourceText.set(sourceText, translatedTexts[index]);
+      });
+    }
+
+    return texts.map((text) => cacheBySourceText.get(text) ?? text);
+  }
 
   async translateSearchQueryToEnglish(query: string): Promise<string> {
-    const [translatedQuery] = await this.azure.translate([query], 'en');
+    const [translatedQuery] = await this.translateTexts([query], 'en');
     return translatedQuery;
   }
 
@@ -25,7 +85,7 @@ export class TranslationService {
       ...recipe.base.ingredients.flatMap((i) => [i.name, i.original]),
     ];
 
-    const translated = await this.azure.translate(texts, 'es');
+    const translated = await this.translateTexts(texts, 'es');
 
     let index = 0;
 

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SpoonacularService } from './spoonacular.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { NotFoundException } from '@nestjs/common';
+import { BadGatewayException, NotFoundException } from '@nestjs/common';
 
 describe('SpoonacularService', () => {
   let service: SpoonacularService;
@@ -120,6 +120,38 @@ describe('SpoonacularService', () => {
 
     await expect(service.getRecipeById(999)).rejects.toBeInstanceOf(
       NotFoundException,
+    );
+  });
+
+  it('debería mapear errores del proveedor a BadGatewayException en daily', async () => {
+    jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
+
+    await expect(service.getDailyRecipes()).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
+  });
+
+  it('debería mapear errores del proveedor a BadGatewayException en details', async () => {
+    jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
+
+    await expect(service.getRecipeById(1)).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
+  });
+
+  it('debería mapear errores del proveedor a BadGatewayException en similar', async () => {
+    jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
+
+    await expect(service.getSimilarRecipes(1)).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
+  });
+
+  it('debería mapear errores del proveedor a BadGatewayException en search', async () => {
+    jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
+
+    await expect(service.searchRecipes('pasta')).rejects.toBeInstanceOf(
+      BadGatewayException,
     );
   });
 });

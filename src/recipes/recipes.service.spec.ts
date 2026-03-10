@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { RecipesService } from './recipes.service';
 import { DailyRecipe } from './schemas/daily-recipe.schema';
 import { Recipe } from './schemas/recipe.schema';
+import { TranslationEntry } from './schemas/translation-entry.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
 import { TranslationService } from './translation/translation.service';
 
@@ -29,6 +30,8 @@ describe('RecipesService', () => {
 
   const translationServiceMock = {
     translateRecipeToSpanish: jest.fn(),
+    translateSearchQueryToEnglish: jest.fn(),
+    translateTexts: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -44,6 +47,10 @@ describe('RecipesService', () => {
         {
           provide: getModelToken(Recipe.name),
           useValue: recipeModelMock,
+        },
+        {
+          provide: getModelToken(TranslationEntry.name),
+          useValue: {},
         },
         {
           provide: SpoonacularService,
@@ -97,6 +104,64 @@ describe('RecipesService', () => {
     expect(result.length).toBe(1);
   });
 
+  it('getDailyRecipes debería traducir titulos al español usando cache de traducciones', async () => {
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: [
+          {
+            sourceId: 1,
+            title: 'Chicken Soup',
+            image: 'img',
+          },
+        ],
+      }),
+    });
+    translationServiceMock.translateTexts = jest
+      .fn()
+      .mockResolvedValue(['Sopa de pollo']);
+
+    const result = await service.getDailyRecipes('es');
+
+    expect(translationServiceMock.translateTexts).toHaveBeenCalledWith(
+      ['Chicken Soup'],
+      'es',
+    );
+    expect(result).toEqual([
+      {
+        sourceId: 1,
+        title: 'Sopa de pollo',
+        image: 'img',
+      },
+    ]);
+  });
+
+  it('getDailyRecipes debería volver a ingles si falla la traducción de títulos', async () => {
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: [
+          {
+            sourceId: 1,
+            title: 'Chicken Soup',
+            image: 'img',
+          },
+        ],
+      }),
+    });
+    translationServiceMock.translateTexts.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getDailyRecipes('es');
+
+    expect(result).toEqual([
+      {
+        sourceId: 1,
+        title: 'Chicken Soup',
+        image: 'img',
+      },
+    ]);
+  });
+
   it('getRecipeDetails debería devolver receta en inglés', async () => {
     recipeModelMock.findOne.mockReturnValue({
       exec: jest.fn().mockResolvedValue({
@@ -148,6 +213,32 @@ describe('RecipesService', () => {
     expect(result.title).toBe('Título');
   });
 
+  it('getRecipeDetails debería volver a ingles si falla la traducción', async () => {
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          summary: 'Summary',
+          instructions: [],
+          ingredients: [],
+        },
+        meta: {},
+        translations: {},
+        save: jest.fn(),
+      }),
+    });
+
+    translationServiceMock.translateRecipeToSpanish.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getRecipeDetails(1, 'es');
+
+    expect(result.title).toBe('Title');
+    expect(result.lang).toBe('en');
+  });
+
   it('getIngredientsForRecipes debería devolver ingredientes en español', async () => {
     const saveMock = jest.fn();
 
@@ -174,5 +265,147 @@ describe('RecipesService', () => {
     const result = await service.getIngredientsForRecipes([1], 'es');
 
     expect(result[0].title).toBe('Título');
+  });
+
+  it('getIngredientsForRecipes debería volver a ingles si falla la traducción', async () => {
+    recipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        sourceId: 1,
+        base: {
+          title: 'Title',
+          ingredients: ['base-ingredients'],
+        },
+        translations: {},
+        save: jest.fn(),
+      }),
+    });
+
+    translationServiceMock.translateRecipeToSpanish.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getIngredientsForRecipes([1], 'es');
+
+    expect(result[0]).toEqual({
+      sourceId: 1,
+      title: 'Title',
+      ingredients: ['base-ingredients'],
+    });
+  });
+
+  it('searchRecipes debería usar la query original en inglés', async () => {
+    spoonacularServiceMock.searchRecipes.mockResolvedValue([
+      { id: 1, title: 'Pasta', image: 'pasta.jpg' },
+    ]);
+
+    const result = await service.searchRecipes('pasta', 'en');
+
+    expect(
+      translationServiceMock.translateSearchQueryToEnglish,
+    ).not.toHaveBeenCalled();
+    expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith('pasta');
+    expect(result[0]).toEqual({
+      sourceId: 1,
+      title: 'Pasta',
+      image: 'pasta.jpg',
+    });
+  });
+
+  it('searchRecipes debería traducir la query en español antes de buscar', async () => {
+    translationServiceMock.translateSearchQueryToEnglish.mockResolvedValue(
+      'chicken soup',
+    );
+    spoonacularServiceMock.searchRecipes.mockResolvedValue([
+      { id: 2, title: 'Chicken Soup', image: 'soup.jpg' },
+    ]);
+
+    await service.searchRecipes('sopa de pollo', 'es');
+
+    expect(
+      translationServiceMock.translateSearchQueryToEnglish,
+    ).toHaveBeenCalledWith('sopa de pollo');
+    expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith(
+      'chicken soup',
+    );
+  });
+
+  it('searchRecipes debería volver a la query original si falla la traducción', async () => {
+    translationServiceMock.translateSearchQueryToEnglish.mockRejectedValue(
+      new Error('azure down'),
+    );
+    spoonacularServiceMock.searchRecipes.mockResolvedValue([]);
+
+    await service.searchRecipes('sopa de pollo', 'es');
+
+    expect(spoonacularServiceMock.searchRecipes).toHaveBeenCalledWith(
+      'sopa de pollo',
+    );
+  });
+
+  it('getSimilarRecipe debería devolver títulos originales en inglés', async () => {
+    spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+
+    const result = await service.getSimilarRecipe(1, 'en');
+
+    expect(translationServiceMock.translateTexts).not.toHaveBeenCalled();
+    expect(result).toEqual([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+  });
+
+  it('getSimilarRecipe debería traducir títulos al español con cache', async () => {
+    spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+    translationServiceMock.translateTexts.mockResolvedValue(['Receta similar']);
+
+    const result = await service.getSimilarRecipe(1, 'es');
+
+    expect(translationServiceMock.translateTexts).toHaveBeenCalledWith(
+      ['Similar recipe'],
+      'es',
+    );
+    expect(result).toEqual([
+      { sourceId: 3, title: 'Receta similar', image: 'img.jpg' },
+    ]);
+  });
+
+  it('getSimilarRecipe debería volver a ingles si falla la traducción de títulos', async () => {
+    spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+    translationServiceMock.translateTexts.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getSimilarRecipe(1, 'es');
+
+    expect(result).toEqual([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+  });
+
+  it('getAllRecipes debería devolver recetas persistidas resumidas', async () => {
+    recipeModelMock.find.mockReturnValue({
+      exec: jest.fn().mockResolvedValue([
+        {
+          sourceId: 7,
+          base: { title: 'Stored title' },
+          meta: { image: 'stored.jpg' },
+        },
+      ]),
+    });
+
+    const result = await service.getAllRecipes();
+
+    expect(result).toEqual([
+      {
+        sourceId: 7,
+        title: 'Stored title',
+        image: 'stored.jpg',
+      },
+    ]);
   });
 });

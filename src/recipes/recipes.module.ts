@@ -4,6 +4,10 @@ import { RecipesService } from './recipes.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Recipe, RecipeSchema } from './schemas/recipe.schema';
 import { DailyRecipe, DailyRecipeSchema } from './schemas/daily-recipe.schema';
+import {
+  TranslationEntry,
+  TranslationEntrySchema,
+} from './schemas/translation-entry.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
 import { HttpModule } from '@nestjs/axios';
 import { TranslationService } from './translation/translation.service';
@@ -19,6 +23,10 @@ import { AzureTranslationService } from './translation/azure-translation.service
       {
         name: Recipe.name,
         schema: RecipeSchema,
+      },
+      {
+        name: TranslationEntry.name,
+        schema: TranslationEntrySchema,
       },
     ]),
     HttpModule,

@@ -1,0 +1,928 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "description": "Returns a simple status response for operational checks.",
+        "operationId": "HealthController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                },
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Health check",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/recipes/daily": {
+      "get": {
+        "description": "Returns daily recipes with ingredients and daily cache support.",
+        "operationId": "RecipesController_getDailyRecipes",
+        "parameters": [
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Response language.",
+            "schema": {
+              "example": "es",
+              "type": "string",
+              "enum": [
+                "en",
+                "es"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily recipes list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeSummaryResponseDto"
+                  }
+                },
+                "example": [
+                  {
+                    "sourceId": 636598,
+                    "title": "Butternut Squash Souffle",
+                    "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
+                  }
+                ]
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable and no cached daily recipes exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get daily recipes",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes/search": {
+      "get": {
+        "description": "Searches recipes by text using Spoonacular. Spanish queries are translated to English before provider lookup.",
+        "operationId": "RecipesController_searchRecipes",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Search text used to query recipes.",
+            "schema": {
+              "example": "pasta",
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Search query language. Spanish queries are translated to English before provider lookup.",
+            "schema": {
+              "example": "es",
+              "type": "string",
+              "enum": [
+                "en",
+                "es"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recipes matching the provided query.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeSummaryResponseDto"
+                  }
+                },
+                "example": [
+                  {
+                    "sourceId": 636598,
+                    "title": "Butternut Squash Souffle",
+                    "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "q must be longer than or equal to 1 characters"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Search recipes",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes/{id}": {
+      "get": {
+        "description": "Returns full recipe details and reuses persisted translations when available.",
+        "operationId": "RecipesController_getRecipeDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Spoonacular recipe identifier.",
+            "schema": {
+              "example": 636598,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Response language.",
+            "schema": {
+              "example": "es",
+              "type": "string",
+              "enum": [
+                "en",
+                "es"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recipe detail response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecipeDetailResponseDto"
+                },
+                "example": {
+                  "sourceId": 636598,
+                  "title": "Butternut Squash Souffle",
+                  "summary": "<p>Recipe summary</p>",
+                  "instructions": [
+                    {
+                      "name": "",
+                      "steps": [
+                        {
+                          "number": 1,
+                          "text": "Step one"
+                        }
+                      ]
+                    }
+                  ],
+                  "ingredients": [
+                    {
+                      "id": 1001,
+                      "name": "butter",
+                      "original": "Butter to grease the ramekins",
+                      "amount": 1,
+                      "unit": "tbsp",
+                      "image": "butter-sliced.jpg"
+                    }
+                  ],
+                  "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg",
+                  "readyInMinutes": 45,
+                  "servings": 4,
+                  "vegetarian": true,
+                  "vegan": false,
+                  "glutenFree": true,
+                  "dairyFree": false,
+                  "cookingMinutes": 30,
+                  "preparationMinutes": 15,
+                  "healthScore": 72,
+                  "aggregateLikes": 154,
+                  "sourceName": "Spoonacular",
+                  "sourceUrl": "https://spoonacular.com/butternut-squash-souffle-636598",
+                  "lang": "en"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "id must not be less than 1"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe does not exist in the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Recipe not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable. Translation provider failures fall back to English content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get recipe details",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes/{id}/similar": {
+      "get": {
+        "description": "Returns recipes related to the provided recipe id. Spanish responses translate and cache similar recipe titles.",
+        "operationId": "RecipesController_getSimilarRecipes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Spoonacular recipe identifier.",
+            "schema": {
+              "example": 636598,
+              "type": "number"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "description": "Response language.",
+            "schema": {
+              "example": "es",
+              "type": "string",
+              "enum": [
+                "en",
+                "es"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Similar recipes list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SimilarRecipeResponseDto"
+                  }
+                },
+                "example": [
+                  {
+                    "sourceId": 123,
+                    "title": "Similar recipe",
+                    "image": "https://img.spoonacular.com/recipes/123-556x370.jpg"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "id must not be less than 1"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recipe does not exist in the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Recipe not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get similar recipes",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes": {
+      "get": {
+        "description": "Returns recipes already persisted in the database.",
+        "operationId": "RecipesController_getAllRecipes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Stored recipes list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeSummaryResponseDto"
+                  }
+                },
+                "example": [
+                  {
+                    "sourceId": 636598,
+                    "title": "Butternut Squash Souffle",
+                    "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "summary": "Get stored recipes",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    },
+    "/api/recipes/ingredients": {
+      "post": {
+        "description": "Returns grouped ingredients for the requested recipe ids.",
+        "operationId": "RecipesController_getIngredients",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngredientsRequestDto"
+              },
+              "examples": {
+                "default": {
+                  "value": {
+                    "sourceIds": [
+                      636598,
+                      123456
+                    ],
+                    "lang": "es"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ingredients grouped by recipe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeIngredientsResponseDto"
+                  }
+                },
+                "example": [
+                  {
+                    "sourceId": 636598,
+                    "title": "Acompañamiento de soufflé de calabaza",
+                    "ingredients": [
+                      {
+                        "id": 1001,
+                        "name": "mantequilla",
+                        "original": "Butter to grease the ramekins",
+                        "amount": 1,
+                        "unit": "tbsp",
+                        "image": "butter-sliced.jpg"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 400,
+                  "message": [
+                    "sourceIds must contain unique values"
+                  ],
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "At least one requested recipe does not exist in the provider.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Recipe not found.",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Recipe provider is unavailable. Translation provider failures fall back to stored or English ingredient data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                },
+                "example": {
+                  "statusCode": 502,
+                  "message": "Recipe provider unavailable.",
+                  "error": "Bad Gateway"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get recipe ingredients",
+        "tags": [
+          "Recipes"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Foodly Notes API",
+    "description": "Backend API for recipe search, translation support, and ingredient aggregation.",
+    "version": "1.0.2",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok",
+            "description": "Service health status."
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "RecipeSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "number",
+            "example": 636598
+          },
+          "title": {
+            "type": "string",
+            "example": "Butternut Squash Souffle"
+          },
+          "image": {
+            "type": "object",
+            "example": "https://img.spoonacular.com/recipes/636598-556x370.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "sourceId",
+          "title"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 502,
+            "description": "HTTP status code."
+          },
+          "message": {
+            "type": "string",
+            "example": "Recipe provider unavailable.",
+            "description": "Human-readable error message."
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Gateway",
+            "description": "HTTP error label."
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "RecipeInstructionStepDto": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "number",
+            "example": 1
+          },
+          "text": {
+            "type": "string",
+            "example": "Step one"
+          }
+        },
+        "required": [
+          "number",
+          "text"
+        ]
+      },
+      "RecipeInstructionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": ""
+          },
+          "steps": {
+            "example": [
+              {
+                "number": 1,
+                "text": "Step one"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeInstructionStepDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "steps"
+        ]
+      },
+      "RecipeIngredientDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1001
+          },
+          "name": {
+            "type": "string",
+            "example": "butter"
+          },
+          "original": {
+            "type": "string",
+            "example": "Butter to grease the ramekins"
+          },
+          "amount": {
+            "type": "number",
+            "example": 1
+          },
+          "unit": {
+            "type": "string",
+            "example": "tbsp"
+          },
+          "image": {
+            "type": "string",
+            "example": "butter-sliced.jpg"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "original",
+          "amount",
+          "unit",
+          "image"
+        ]
+      },
+      "RecipeDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "number",
+            "example": 636598
+          },
+          "title": {
+            "type": "string",
+            "example": "Butternut Squash Souffle"
+          },
+          "summary": {
+            "type": "string",
+            "example": "<p>Recipe summary</p>"
+          },
+          "instructions": {
+            "example": [
+              {
+                "name": "",
+                "steps": [
+                  {
+                    "number": 1,
+                    "text": "Step one"
+                  }
+                ]
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeInstructionDto"
+            }
+          },
+          "ingredients": {
+            "example": [
+              {
+                "id": 1001,
+                "name": "butter",
+                "original": "Butter to grease the ramekins",
+                "amount": 1,
+                "unit": "tbsp",
+                "image": "butter-sliced.jpg"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredientDto"
+            }
+          },
+          "image": {
+            "type": "string",
+            "example": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
+          },
+          "readyInMinutes": {
+            "type": "number",
+            "example": 45
+          },
+          "servings": {
+            "type": "number",
+            "example": 4
+          },
+          "vegetarian": {
+            "type": "boolean",
+            "example": true
+          },
+          "vegan": {
+            "type": "boolean",
+            "example": false
+          },
+          "glutenFree": {
+            "type": "boolean",
+            "example": true
+          },
+          "dairyFree": {
+            "type": "boolean",
+            "example": false
+          },
+          "cookingMinutes": {
+            "type": "number",
+            "example": 30
+          },
+          "preparationMinutes": {
+            "type": "number",
+            "example": 15
+          },
+          "healthScore": {
+            "type": "number",
+            "example": 72
+          },
+          "aggregateLikes": {
+            "type": "number",
+            "example": 154
+          },
+          "sourceName": {
+            "type": "string",
+            "example": "Spoonacular"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "example": "https://spoonacular.com/butternut-squash-souffle-636598"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "en",
+              "es"
+            ],
+            "example": "en"
+          }
+        },
+        "required": [
+          "sourceId",
+          "title",
+          "summary",
+          "instructions",
+          "ingredients",
+          "readyInMinutes",
+          "servings",
+          "vegetarian",
+          "vegan",
+          "glutenFree",
+          "dairyFree",
+          "healthScore",
+          "aggregateLikes",
+          "lang"
+        ]
+      },
+      "SimilarRecipeResponseDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "number",
+            "example": 123
+          },
+          "title": {
+            "type": "string",
+            "example": "Similar recipe"
+          },
+          "image": {
+            "type": "object",
+            "example": "https://img.spoonacular.com/recipes/123-556x370.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "sourceId",
+          "title"
+        ]
+      },
+      "IngredientsRequestDto": {
+        "type": "object",
+        "properties": {
+          "sourceIds": {
+            "example": [
+              636598,
+              123456
+            ],
+            "description": "Recipe source identifiers.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "en",
+              "es"
+            ],
+            "example": "es",
+            "description": "Response language."
+          }
+        },
+        "required": [
+          "sourceIds"
+        ]
+      },
+      "RecipeIngredientsResponseDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "number",
+            "example": 636598
+          },
+          "title": {
+            "type": "string",
+            "example": "Acompañamiento de soufflé de calabaza"
+          },
+          "ingredients": {
+            "example": [
+              {
+                "id": 1001,
+                "name": "mantequilla",
+                "original": "Butter to grease the ramekins",
+                "amount": 1,
+                "unit": "tbsp",
+                "image": "butter-sliced.jpg"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeIngredientDto"
+            }
+          }
+        },
+        "required": [
+          "sourceId",
+          "title",
+          "ingredients"
+        ]
+      }
+    }
+  }
+}

@@ -1,19 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { setupSwagger } from './swagger/swagger.config';
+import { resolveCorsOrigins } from './config/cors.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
-  const corsOrigins = '*';
-
-  //process.env.CORS_ORIGIN?.split(',') ?? [];
-
   app.enableCors({
-    origin: corsOrigins,
+    origin: resolveCorsOrigins(),
   });
 
   app.useGlobalPipes(
@@ -24,16 +21,7 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Foodly Notes API')
-    .setDescription(
-      'Aplicación orientada a la búsqueda, guardado y organización de recetas de cocina, con soporte para listas de compras, favoritos y traducción automática de contenido',
-    )
-    .setVersion('1.0.3')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  setupSwagger(app);
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

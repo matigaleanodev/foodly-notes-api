@@ -52,6 +52,24 @@ El frontend y el backend forman parte de una **misma aplicación**, diseñada co
 
 ---
 
+## 🎯 Límites funcionales
+
+Esta API se mantiene enfocada en un alcance acotado:
+
+- Búsqueda, detalle, recetas diarias, similares e ingredientes agregados
+- Traducción de contenido y consultas cuando aporta valor al flujo
+- Cache y persistencia para reducir llamadas redundantes a Spoonacular y Azure
+- Encapsulamiento total de proveedores externos detrás del backend
+
+Queda fuera de alcance por ahora:
+
+- Favoritos, shopping list e historial sincronizados en backend
+- Perfiles, autenticación de usuario o estado cross-device
+- Comentarios, ratings, recetas propias o features sociales
+- Planificación de comidas u otros módulos de producto no ligados al retrieval de recetas
+
+---
+
 ## 📦 Endpoints principales
 
 > La documentación completa y actualizada está disponible en **Swagger**.
@@ -94,6 +112,10 @@ Parámetros:
 
 Devuelve recetas relacionadas a una receta dada.
 
+Parámetros:
+
+- `lang` (opcional): `en | es`
+
 ### 🔹 Ingredientes por recetas
 
 `POST /api/recipes/ingredients`
@@ -124,6 +146,10 @@ Body:
 Para instrucciones de configuración y desarrollo, consulta:
 
 👉 [DEVELOPMENT.md](./DEVELOPMENT.md)
+
+Para límites funcionales y dependencias externas, consulta:
+
+👉 [docs/backend-scope.es.md](./docs/backend-scope.es.md)
 
 Swagger UI: `GET /docs`
 

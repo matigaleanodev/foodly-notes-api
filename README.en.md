@@ -52,6 +52,24 @@ The frontend and backend are part of the **same application**, designed with rea
 
 ---
 
+## 🎯 Functional Boundaries
+
+This API stays intentionally focused on a narrow scope:
+
+- Search, detail, daily recipes, similar recipes, and aggregated ingredients
+- Translation of content and queries when it improves the recipe flow
+- Caching and persistence to reduce redundant Spoonacular and Azure calls
+- Full encapsulation of external providers behind the backend
+
+Out of scope for now:
+
+- Backend-owned favorites, shopping-list sync, or history sync
+- User profiles, authentication, or cross-device state
+- Comments, ratings, user-generated recipes, or social features
+- Meal planning or unrelated product modules outside recipe retrieval
+
+---
+
 ## 📦 Main Endpoints
 
 > Full and up-to-date documentation is available in **Swagger**.
@@ -94,6 +112,10 @@ Parameters:
 
 Returns recipes related to the given recipe.
 
+Parameters:
+
+- `lang` (optional): `en | es`
+
 ### 🔹 Ingredients by Recipes
 
 `POST /api/recipes/ingredients`
@@ -124,6 +146,10 @@ Body:
 For local setup, environment variables, and development guidelines:
 
 👉 [DEVELOPMENT.md](./DEVELOPMENT.md)
+
+For functional boundaries and external dependencies, see:
+
+👉 [docs/backend-scope.md](./docs/backend-scope.md)
 
 Swagger UI: `GET /docs`
 

@@ -109,6 +109,15 @@ describe('RecipesController', () => {
     expect(recipesServiceMock.getSimilarRecipe).toHaveBeenCalledWith(10, 'es');
   });
 
+  it('getAllRecipes debería delegar al service', async () => {
+    recipesServiceMock.getAllRecipes.mockResolvedValue(['stored']);
+
+    const result = await controller.getAllRecipes();
+
+    expect(recipesServiceMock.getAllRecipes).toHaveBeenCalled();
+    expect(result).toEqual(['stored']);
+  });
+
   it('getIngredients debería usar lang en por defecto', async () => {
     recipesServiceMock.getIngredientsForRecipes.mockResolvedValue(['ings']);
 

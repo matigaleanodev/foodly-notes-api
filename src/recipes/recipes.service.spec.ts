@@ -135,6 +135,33 @@ describe('RecipesService', () => {
     ]);
   });
 
+  it('getDailyRecipes debería volver a ingles si falla la traducción de títulos', async () => {
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: [
+          {
+            sourceId: 1,
+            title: 'Chicken Soup',
+            image: 'img',
+          },
+        ],
+      }),
+    });
+    translationServiceMock.translateTexts.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getDailyRecipes('es');
+
+    expect(result).toEqual([
+      {
+        sourceId: 1,
+        title: 'Chicken Soup',
+        image: 'img',
+      },
+    ]);
+  });
+
   it('getRecipeDetails debería devolver receta en inglés', async () => {
     recipeModelMock.findOne.mockReturnValue({
       exec: jest.fn().mockResolvedValue({
@@ -342,6 +369,43 @@ describe('RecipesService', () => {
     );
     expect(result).toEqual([
       { sourceId: 3, title: 'Receta similar', image: 'img.jpg' },
+    ]);
+  });
+
+  it('getSimilarRecipe debería volver a ingles si falla la traducción de títulos', async () => {
+    spoonacularServiceMock.getSimilarRecipes.mockResolvedValue([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+    translationServiceMock.translateTexts.mockRejectedValue(
+      new Error('azure down'),
+    );
+
+    const result = await service.getSimilarRecipe(1, 'es');
+
+    expect(result).toEqual([
+      { sourceId: 3, title: 'Similar recipe', image: 'img.jpg' },
+    ]);
+  });
+
+  it('getAllRecipes debería devolver recetas persistidas resumidas', async () => {
+    recipeModelMock.find.mockReturnValue({
+      exec: jest.fn().mockResolvedValue([
+        {
+          sourceId: 7,
+          base: { title: 'Stored title' },
+          meta: { image: 'stored.jpg' },
+        },
+      ]),
+    });
+
+    const result = await service.getAllRecipes();
+
+    expect(result).toEqual([
+      {
+        sourceId: 7,
+        title: 'Stored title',
+        image: 'stored.jpg',
+      },
     ]);
   });
 });

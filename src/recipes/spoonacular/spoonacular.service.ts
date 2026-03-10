@@ -24,25 +24,29 @@ export class SpoonacularService {
   }
 
   async getDailyRecipes(number = 12) {
-    const { data } = await this.httpService.axiosRef.get<{
-      recipes: {
-        id: number;
-        title: string;
-        image: string;
-      }[];
-    }>(`${this.baseURL}/recipes/random`, {
-      params: {
-        apiKey: this.apiKey,
-        number,
-        addRecipeInformation: true,
-      },
-    });
+    try {
+      const { data } = await this.httpService.axiosRef.get<{
+        recipes: {
+          id: number;
+          title: string;
+          image: string;
+        }[];
+      }>(`${this.baseURL}/recipes/random`, {
+        params: {
+          apiKey: this.apiKey,
+          number,
+          addRecipeInformation: true,
+        },
+      });
 
-    return data.recipes.map((r) => ({
-      id: r.id,
-      title: r.title,
-      image: r.image,
-    }));
+      return data.recipes.map((r) => ({
+        id: r.id,
+        title: r.title,
+        image: r.image,
+      }));
+    } catch (error) {
+      this.throwMappedProviderError(error);
+    }
   }
 
   async getRecipeById(id: number) {

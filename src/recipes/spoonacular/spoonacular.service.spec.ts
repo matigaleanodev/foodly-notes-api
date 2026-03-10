@@ -123,6 +123,22 @@ describe('SpoonacularService', () => {
     );
   });
 
+  it('debería mapear errores del proveedor a BadGatewayException en daily', async () => {
+    jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
+
+    await expect(service.getDailyRecipes()).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
+  });
+
+  it('debería mapear errores del proveedor a BadGatewayException en details', async () => {
+    jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
+
+    await expect(service.getRecipeById(1)).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
+  });
+
   it('debería mapear errores del proveedor a BadGatewayException en similar', async () => {
     jest.spyOn(httpService.axiosRef, 'get').mockRejectedValueOnce(new Error());
 

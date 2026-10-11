@@ -1,5 +1,10 @@
 # Operations and Smoke Checks
 
+Before upgrading, see [security and deployment notes (Spanish)](security.es.md):
+Node 24, MongoDB indexes, explicit trusted proxies, HTTPS enforcement and provider budgets.
+Public Swagger/OpenAPI is disabled by default in production. Set
+`SWAGGER_ENABLED=false` when running the smoke script against that configuration.
+
 ## Environment Strategy
 
 The backend keeps a single code path and varies runtime behavior through environment variables.

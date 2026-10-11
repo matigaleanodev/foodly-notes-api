@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.git
+.github
+.env
+.env.*
+*.log
+agents.md
+AGENTS.md
+roadmap.md
+test
+docs
+postman-collection.json

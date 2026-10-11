@@ -1,6 +1,6 @@
 {
   "name": "foodly-notes-api",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "author": "Matias Galeano",
   "private": true,
   "license": "UNLICENSED",
@@ -15,27 +15,33 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:debug": "node --experimental-vm-modules --inspect-brk node_modules/jest/bin/jest.js --runInBand",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-integration.json --runInBand",
+    "db:indexes": "node scripts/ensure-cache-indexes.js",
+    "prestart:prod": "node scripts/ensure-cache-indexes.js --apply"
   },
   "dependencies": {
-    "@nestjs/axios": "^4.0.1",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.2",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/mapped-types": "^2.1.0",
-    "@nestjs/mongoose": "^11.0.4",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/swagger": "^11.2.5",
+    "@nestjs/axios": "^12.0.1",
+    "@nestjs/common": "^12.1.2",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.1.2",
+    "@nestjs/mapped-types": "^12.0.0",
+    "@nestjs/mongoose": "^12.0.0",
+    "@nestjs/platform-express": "^12.1.2",
+    "@nestjs/swagger": "^12.0.2",
+    "@nestjs/throttler": "^6.7.1",
     "axios": "^1.13.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
+    "helmet": "^8.3.0",
     "mongoose": "^9.1.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sanitize-html": "^2.18.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
@@ -43,10 +49,11 @@
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
+    "@nestjs/testing": "^12.1.2",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
+    "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -101,6 +108,15 @@
     "url": "https://github.com/matigaleanodev/foodly-notes-api"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24.15.0"
+  },
+  "overrides": {
+    "js-yaml": "^5.4.3",
+    "postman-collection": {
+      "uuid": "^11.1.1"
+    },
+    "openapi-to-postmanv2": {
+      "yaml": "^2.9.1"
+    }
   }
 }

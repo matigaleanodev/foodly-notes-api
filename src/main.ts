@@ -1,28 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { setupSwagger } from './swagger/swagger.config';
-import { resolveCorsOrigins } from './config/cors.config';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { configureApplication } from './config/application.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.setGlobalPrefix('api');
-
-  app.enableCors({
-    origin: resolveCorsOrigins(),
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false,
   });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-
-  setupSwagger(app);
+  configureApplication(app);
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
-bootstrap().catch((err) => console.error(err));
+bootstrap().catch((err: unknown) => {
+  console.error(
+    'Application startup failed.',
+    err instanceof Error ? err.name : 'Unknown error',
+  );
+  process.exit(1);
+});

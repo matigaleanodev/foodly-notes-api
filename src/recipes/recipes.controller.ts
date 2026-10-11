@@ -14,6 +14,8 @@ import { IngredientsRequestDto } from './dto/requests/ingredients-request.dto';
 import { LangQueryDto } from './dto/requests/lang-query.dto';
 import { RecipeIdParamDto } from './dto/requests/recipe-id-param.dto';
 import { SearchRecipesQueryDto } from './dto/requests/search-recipes-query.dto';
+import { StoredRecipesQueryDto } from './dto/requests/stored-recipes-query.dto';
+import { Throttle } from '@nestjs/throttler';
 import { RecipeDetailResponseDto } from './dto/responses/recipe-detail-response.dto';
 import { RecipeIngredientsResponseDto } from './dto/responses/recipe-ingredients-response.dto';
 import { RecipeSummaryResponseDto } from './dto/responses/recipe-summary-response.dto';
@@ -34,6 +36,7 @@ export class RecipesController {
   }
 
   @ApiSearchRecipes()
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Get('search')
   searchRecipes(
     @Query() query: SearchRecipesQueryDto,
@@ -53,6 +56,7 @@ export class RecipesController {
   }
 
   @ApiSimilarRecipes()
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Get(':id/similar')
   getSimilarRecipes(
     @Param() params: RecipeIdParamDto,
@@ -64,11 +68,14 @@ export class RecipesController {
 
   @ApiStoredRecipes()
   @Get()
-  getAllRecipes(): Promise<RecipeSummaryResponseDto[]> {
-    return this.recipesService.getAllRecipes();
+  getAllRecipes(
+    @Query() query: StoredRecipesQueryDto,
+  ): Promise<RecipeSummaryResponseDto[]> {
+    return this.recipesService.getAllRecipes(query);
   }
 
   @ApiRecipeIngredients()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('ingredients')
   getIngredients(
     @Body() body: IngredientsRequestDto,

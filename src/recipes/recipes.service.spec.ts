@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 import { RecipesService } from './recipes.service';
-import { DailyRecipe } from './schemas/daily-recipe.schema';
+import { DailyRecipe, DailyRecipeSchema } from './schemas/daily-recipe.schema';
 import { Recipe } from './schemas/recipe.schema';
 import { TranslationEntry } from './schemas/translation-entry.schema';
 import { SpoonacularService } from './spoonacular/spoonacular.service';
@@ -13,11 +14,13 @@ describe('RecipesService', () => {
   const dailyRecipeModelMock = {
     findOne: jest.fn(),
     create: jest.fn(),
+    findOneAndUpdate: jest.fn(),
   };
 
   const recipeModelMock = {
     findOne: jest.fn(),
     create: jest.fn(),
+    findOneAndUpdate: jest.fn(),
     find: jest.fn(),
   };
 
@@ -70,16 +73,33 @@ describe('RecipesService', () => {
     expect(service).toBeDefined();
   });
 
+  it('serializes cached Spanish daily recipes without Mongoose internals', async () => {
+    const Daily = model('ServiceDailyRegression', DailyRecipeSchema);
+    const doc = new Daily({
+      date: '2026-10-11',
+      recipes: [{ sourceId: 42, title: 'Soup', image: 'soup.jpg' }],
+    });
+    dailyRecipeModelMock.findOne.mockReturnValue({
+      exec: jest.fn().mockResolvedValue(doc),
+    });
+    translationServiceMock.translateTexts.mockResolvedValue(['Sopa']);
+    const result = await service.getDailyRecipes('es');
+    expect(result).toEqual([
+      { sourceId: 42, title: 'Sopa', image: 'soup.jpg' },
+    ]);
+    expect(JSON.stringify(result)).not.toMatch(/_id|\$__|_doc/);
+  });
+
   it('getDailyRecipes debería devolver cache si existe', async () => {
     dailyRecipeModelMock.findOne.mockReturnValue({
       exec: jest.fn().mockResolvedValue({
-        recipes: ['cached'],
+        recipes: [{ sourceId: 1, title: 'cached', image: 'img' }],
       }),
     });
 
     const result = await service.getDailyRecipes('en');
 
-    expect(result).toEqual(['cached']);
+    expect(result).toEqual([{ sourceId: 1, title: 'cached', image: 'img' }]);
   });
 
   it('getDailyRecipes debería crear daily si no hay cache', async () => {
@@ -96,11 +116,24 @@ describe('RecipesService', () => {
       },
     ]);
 
-    dailyRecipeModelMock.create.mockResolvedValue(undefined);
+    dailyRecipeModelMock.findOneAndUpdate.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: [{ sourceId: 1, title: 'Recipe', image: 'img' }],
+      }),
+    });
 
     const result = await service.getDailyRecipes('en');
 
-    expect(dailyRecipeModelMock.create).toHaveBeenCalled();
+    expect(dailyRecipeModelMock.findOneAndUpdate).toHaveBeenCalledWith(
+      { date: new Date().toISOString().slice(0, 10) },
+      {
+        $setOnInsert: {
+          date: new Date().toISOString().slice(0, 10),
+          recipes: [{ sourceId: 1, title: 'Recipe', image: 'img' }],
+        },
+      },
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
+    );
     expect(result.length).toBe(1);
   });
 
@@ -179,6 +212,9 @@ describe('RecipesService', () => {
     const result = await service.getRecipeDetails(1, 'en');
 
     expect(result.title).toBe('Title');
+    expect(
+      translationServiceMock.translateRecipeToSpanish,
+    ).not.toHaveBeenCalled();
   });
 
   it('getRecipeDetails debería traducir y guardar si lang es es', async () => {
@@ -273,7 +309,7 @@ describe('RecipesService', () => {
         sourceId: 1,
         base: {
           title: 'Title',
-          ingredients: ['base-ingredients'],
+          ingredients: [{ id: 1, name: 'salt', image: '' }],
         },
         translations: {},
         save: jest.fn(),
@@ -289,7 +325,7 @@ describe('RecipesService', () => {
     expect(result[0]).toEqual({
       sourceId: 1,
       title: 'Title',
-      ingredients: ['base-ingredients'],
+      ingredients: [{ id: 1, name: 'salt', image: '' }],
     });
   });
 
@@ -388,7 +424,11 @@ describe('RecipesService', () => {
   });
 
   it('getAllRecipes debería devolver recetas persistidas resumidas', async () => {
-    recipeModelMock.find.mockReturnValue({
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
       exec: jest.fn().mockResolvedValue([
         {
           sourceId: 7,
@@ -396,9 +436,15 @@ describe('RecipesService', () => {
           meta: { image: 'stored.jpg' },
         },
       ]),
-    });
+    };
+    recipeModelMock.find.mockReturnValue(query);
 
-    const result = await service.getAllRecipes();
+    const result = await service.getAllRecipes({ limit: 20, after: 6 });
+    expect(recipeModelMock.find).toHaveBeenCalledWith({ sourceId: { $gt: 6 } });
+    expect(query.limit).toHaveBeenCalledWith(20);
+    expect(query.select).toHaveBeenCalledWith(
+      'sourceId base.title meta.image -_id',
+    );
 
     expect(result).toEqual([
       {

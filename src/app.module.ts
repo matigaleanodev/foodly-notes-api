@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RecipesModule } from './recipes/recipes.module';
-import { HttpModule } from '@nestjs/axios';
+import { SecurityModule } from './security/security.module';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -11,14 +11,11 @@ import { HealthController } from './health/health.controller';
     MongooseModule.forRootAsync({
       useFactory: () => ({
         uri: process.env.MONGO_URI,
+        autoIndex: process.env.NODE_ENV !== 'production',
+        serverSelectionTimeoutMS: 5000,
       }),
     }),
-    HttpModule.registerAsync({
-      useFactory: () => ({
-        timeout: 5000,
-        maxRedirects: 5,
-      }),
-    }),
+    SecurityModule,
     RecipesModule,
   ],
   controllers: [HealthController],

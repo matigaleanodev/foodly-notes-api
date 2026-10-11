@@ -7,7 +7,9 @@ function buildUrl(baseUrl, path) {
 }
 
 async function requestJson(baseUrl, path) {
-  const response = await fetch(buildUrl(baseUrl, path));
+  const response = await fetch(buildUrl(baseUrl, path), {
+    signal: AbortSignal.timeout(15000),
+  });
   const contentType = response.headers.get('content-type') ?? '';
   const body = contentType.includes('application/json')
     ? await response.json()
@@ -37,8 +39,12 @@ async function runSmokeChecks() {
   console.log('OK  /api/health');
 
   const openApi = await requestJson(baseUrl, '/openapi.json');
-  assertCondition(openApi.status === 200, 'OpenAPI endpoint failed.');
-  console.log('OK  /openapi.json');
+  const swaggerEnabled = process.env.SWAGGER_ENABLED !== 'false';
+  assertCondition(
+    openApi.status === (swaggerEnabled ? 200 : 404),
+    'Unexpected OpenAPI endpoint status. Set SWAGGER_ENABLED=false when disabled.',
+  );
+  console.log('OK  /openapi.json visibility');
 
   const storedRecipes = await requestJson(baseUrl, '/api/recipes');
   assertCondition(storedRecipes.status === 200, 'Stored recipes smoke check failed.');

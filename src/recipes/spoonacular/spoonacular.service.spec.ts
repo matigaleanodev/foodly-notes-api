@@ -3,6 +3,7 @@ import { SpoonacularService } from './spoonacular.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { BadGatewayException, NotFoundException } from '@nestjs/common';
+import { ProviderAccessService } from '../../security/provider-access.service';
 
 describe('SpoonacularService', () => {
   let service: SpoonacularService;
@@ -12,6 +13,12 @@ describe('SpoonacularService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SpoonacularService,
+        {
+          provide: ProviderAccessService,
+          useValue: {
+            run: (_provider: string, work: () => Promise<unknown>) => work(),
+          },
+        },
         {
           provide: HttpService,
           useValue: {

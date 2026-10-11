@@ -7,6 +7,8 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiTooManyRequestsResponse,
+  ApiServiceUnavailableResponse,
 } from '@nestjs/swagger';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 import { IngredientsRequestDto } from '../recipes/dto/requests/ingredients-request.dto';
@@ -20,7 +22,19 @@ import { recipeDetailResponseExample } from './examples/recipes/recipe-detail-re
 import { similarRecipesResponseExample } from './examples/recipes/similar-recipe.example';
 
 export function ApiRecipesController() {
-  return applyDecorators(ApiTags('Recipes'));
+  return applyDecorators(
+    ApiTags('Recipes'),
+    ApiTooManyRequestsResponse({
+      description:
+        'Request rate exceeded. Respect the Retry-After response header.',
+      type: ErrorResponseDto,
+    }),
+    ApiServiceUnavailableResponse({
+      description:
+        'Service busy or provider daily budget exhausted. Respect Retry-After.',
+      type: ErrorResponseDto,
+    }),
+  );
 }
 
 export function ApiDailyRecipes() {
@@ -173,7 +187,8 @@ export function ApiStoredRecipes() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get stored recipes',
-      description: 'Returns recipes already persisted in the database.',
+      description:
+        'Returns stored recipes ordered by sourceId. Defaults to 50 items (maximum 100). Pass the last sourceId as after to fetch the next page.',
     }),
     ApiOkResponse({
       description: 'Stored recipes list.',

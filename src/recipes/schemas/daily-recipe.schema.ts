@@ -26,3 +26,7 @@ export class DailyRecipe {
 }
 
 export const DailyRecipeSchema = SchemaFactory.createForClass(DailyRecipe);
+DailyRecipeSchema.index(
+  { date: 1 },
+  { unique: true, name: 'daily_date_unique' },
+);

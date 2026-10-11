@@ -68,6 +68,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable and no cached daily recipes exist.",
             "content": {
@@ -79,6 +89,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -101,6 +121,7 @@
             "in": "query",
             "description": "Search text used to query recipes.",
             "schema": {
+              "maxLength": 200,
               "example": "pasta",
               "type": "string"
             }
@@ -158,6 +179,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable.",
             "content": {
@@ -169,6 +200,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -293,6 +334,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable. Translation provider failures fall back to English content.",
             "content": {
@@ -304,6 +355,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -398,6 +459,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable.",
             "content": {
@@ -412,6 +483,16 @@
                 }
               }
             }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
           }
         },
         "summary": "Get similar recipes",
@@ -422,9 +503,36 @@
     },
     "/api/recipes": {
       "get": {
-        "description": "Returns recipes already persisted in the database.",
+        "description": "Returns stored recipes ordered by sourceId. Defaults to 50 items (maximum 100). Pass the last sourceId as after to fetch the next page.",
         "operationId": "RecipesController_getAllRecipes",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "description": "Return source IDs greater than this cursor.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Stored recipes list.",
@@ -443,6 +551,26 @@
                     "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
                   }
                 ]
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
               }
             }
           }
@@ -541,6 +669,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable. Translation provider failures fall back to stored or English ingredient data.",
             "content": {
@@ -552,6 +690,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -567,7 +715,7 @@
   "info": {
     "title": "Foodly Notes API",
     "description": "Backend API for recipe search, translation support, and ingredient aggregation.",
-    "version": "1.0.2",
+    "version": "2.0.0",
     "contact": {}
   },
   "tags": [],
@@ -585,28 +733,6 @@
         },
         "required": [
           "status"
-        ]
-      },
-      "RecipeSummaryResponseDto": {
-        "type": "object",
-        "properties": {
-          "sourceId": {
-            "type": "number",
-            "example": 636598
-          },
-          "title": {
-            "type": "string",
-            "example": "Butternut Squash Souffle"
-          },
-          "image": {
-            "type": "object",
-            "example": "https://img.spoonacular.com/recipes/636598-556x370.jpg",
-            "nullable": true
-          }
-        },
-        "required": [
-          "sourceId",
-          "title"
         ]
       },
       "ErrorResponseDto": {
@@ -632,6 +758,28 @@
           "statusCode",
           "message",
           "error"
+        ]
+      },
+      "RecipeSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "number",
+            "example": 636598
+          },
+          "title": {
+            "type": "string",
+            "example": "Butternut Squash Souffle"
+          },
+          "image": {
+            "type": "object",
+            "example": "https://img.spoonacular.com/recipes/636598-556x370.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "sourceId",
+          "title"
         ]
       },
       "RecipeInstructionStepDto": {
@@ -861,6 +1009,10 @@
           "title"
         ]
       },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
       "IngredientsRequestDto": {
         "type": "object",
         "properties": {
@@ -870,6 +1022,7 @@
               123456
             ],
             "description": "Recipe source identifiers.",
+            "maxItems": 20,
             "type": "array",
             "items": {
               "type": "number"

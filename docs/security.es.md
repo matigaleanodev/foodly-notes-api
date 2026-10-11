@@ -96,7 +96,8 @@ npm run test:e2e -- --runInBand
 INTEGRATION_MONGO_URI=mongodb://127.0.0.1:27017/foodly_notes_test npm run test:integration
 npm run build
 npm run generate:postman
-npm audit --omit=dev
+npm run test:postman
+npm audit
 ```
 
 Las pruebas de integración crean y eliminan únicamente sus colecciones temporales;
@@ -105,12 +106,15 @@ Las pruebas usan proveedores simulados y no consumen cuotas reales.
 El smoke check sí consume proveedores: usar `SWAGGER_ENABLED=false npm run smoke`
 contra un despliegue con documentación deshabilitada.
 
-El escaneo de esta actualización dio cero vulnerabilidades de producción.
-Quedan tres alertas altas de desarrollo en `@faker-js/faker` y sus dependientes
-Postman: el conversor más reciente sigue usando APIs de Faker 5; forzar Faker 10
-rompe esas APIs y `audit fix --force` propone un downgrade. Se mantienen fuera
-de la imagen runtime; revisar cuando el proveedor publique una corrección compatible.
-CI bloquea vulnerabilidades de producción y Dependabot propone actualizaciones.
+Desde 2.0.1, el escaneo completo no reporta vulnerabilidades, incluyendo desarrollo.
+El conversor externo de Postman y su dependencia vulnerable de Faker se reemplazaron
+por un generador local que exporta los ejemplos explícitos del OpenAPI. Los nuevos
+parámetros obligatorios y cuerpos JSON deben documentar ejemplos; el generador falla
+si faltan. No inventa datos ni evalúa plantillas de esquemas.
+`allowScripts` declara los scripts de las versiones instaladas de Parcel Watcher y
+UNRS Resolver, y desactiva el reporte de Scarf. Una nueva versión de esos paquetes
+requiere revisar su política. CI bloquea vulnerabilidades de todas las dependencias
+y verifica la exportación Postman; Dependabot propone actualizaciones.
 
 Docker compila por etapas, instala sólo dependencias productivas, usa el usuario
 `node` y no copia `.env`, tests ni herramientas de desarrollo al runtime.

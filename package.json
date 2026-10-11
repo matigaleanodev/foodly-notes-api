@@ -30,12 +30,15 @@
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.5",
+    "@nestjs/throttler": "^6.7.1",
     "axios": "^1.13.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
+    "helmet": "^8.3.0",
     "mongoose": "^9.1.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sanitize-html": "^2.18.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
@@ -47,6 +50,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
+    "@types/sanitize-html": "^2.16.2",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -102,5 +106,14 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "overrides": {
+    "js-yaml": "^5.4.3",
+    "postman-collection": {
+      "uuid": "^11.1.1"
+    },
+    "openapi-to-postmanv2": {
+      "yaml": "^2.9.1"
+    }
   }
 }

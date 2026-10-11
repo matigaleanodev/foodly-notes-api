@@ -9,6 +9,8 @@ import {
 import { SpoonacularService } from './spoonacular/spoonacular.service';
 import { Recipe, RecipeDocument } from './schemas/recipe.schema';
 import { TranslationService } from './translation/translation.service';
+import { StoredRecipesQueryDto } from './dto/requests/stored-recipes-query.dto';
+import { safeImage } from './recipe-content';
 import {
   mapDailyRecipeSummary,
   mapRecipeDetailResponse,
@@ -54,9 +56,8 @@ export class RecipesService {
 
   async getRecipeDetails(sourceId: number, lang: Lang = 'en') {
     const recipe = await this.findOrCreateRecipe(sourceId);
-    const translatedRecipe = await this.ensureSpanishTranslation(recipe);
-
     if (lang === 'es') {
+      const translatedRecipe = await this.ensureSpanishTranslation(recipe);
       return mapRecipeDetailResponse(
         translatedRecipe,
         translatedRecipe.translations?.es ? 'es' : 'en',
@@ -73,14 +74,15 @@ export class RecipesService {
   }
 
   async getIngredientsForRecipes(sourceIds: number[], lang: Lang = 'en') {
-    const recipes = await Promise.all(
-      sourceIds.map((sourceId) => this.findOrCreateRecipe(sourceId)),
-    );
-
-    if (lang === 'es') {
-      await Promise.all(
-        recipes.map((recipe) => this.ensureSpanishTranslation(recipe)),
+    const recipes: RecipeDocument[] = [];
+    for (let offset = 0; offset < sourceIds.length; offset += 4) {
+      const batch = await Promise.all(
+        sourceIds.slice(offset, offset + 4).map(async (sourceId) => {
+          const recipe = await this.findOrCreateRecipe(sourceId);
+          return lang === 'es' ? this.ensureSpanishTranslation(recipe) : recipe;
+        }),
       );
+      recipes.push(...batch);
     }
 
     return recipes.map((recipe) => mapRecipeIngredientsResponse(recipe, lang));
@@ -95,8 +97,14 @@ export class RecipesService {
     return results.map(mapSearchRecipeSummary);
   }
 
-  async getAllRecipes() {
-    const recipes = await this.recipeModel.find().exec();
+  async getAllRecipes(query: StoredRecipesQueryDto = { limit: 50 }) {
+    const recipes = await this.recipeModel
+      .find(query.after ? { sourceId: { $gt: query.after } } : {})
+      .select('sourceId base.title meta.image -_id')
+      .sort({ sourceId: 1 })
+      .limit(query.limit)
+      .lean()
+      .exec();
 
     return recipes.map(mapStoredRecipeSummary);
   }
@@ -151,29 +159,35 @@ export class RecipesService {
     }
   }
 
-  private async translateRecipeSummaries<
-    T extends {
+  private async translateRecipeSummaries(
+    recipes: {
       sourceId: number;
       title: string;
-      image: string | null;
-    },
-  >(recipes: T[], lang: Lang): Promise<T[]> {
+      image?: string | null;
+    }[],
+    lang: Lang,
+  ) {
+    const summaries = recipes.map((recipe) => ({
+      sourceId: recipe.sourceId,
+      title: recipe.title,
+      image: safeImage(recipe.image),
+    }));
     if (lang !== 'es') {
-      return recipes;
+      return summaries;
     }
 
     try {
       const translatedTitles = await this.translationService.translateTexts(
-        recipes.map((recipe) => recipe.title),
+        summaries.map((recipe) => recipe.title),
         'es',
       );
 
-      return recipes.map((recipe, index) => ({
+      return summaries.map((recipe, index) => ({
         ...recipe,
         title: translatedTitles[index],
       }));
     } catch {
-      return recipes;
+      return summaries;
     }
   }
 
@@ -181,7 +195,7 @@ export class RecipesService {
     recipes: {
       sourceId: number;
       title: string;
-      image: string;
+      image?: string;
     }[],
     lang: Lang,
   ) {

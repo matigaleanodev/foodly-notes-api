@@ -1,5 +1,6 @@
 import type { Lang } from '../common/types/lang.type';
 import type { RecipeDocument } from './schemas/recipe.schema';
+import { safeHttpUrl, safeImage, sanitizeSummary } from './recipe-content';
 import type {
   SpoonacularRandomRecipe,
   SpoonacularRecipeDetail,
@@ -11,7 +12,7 @@ export function mapDailyRecipeSummary(recipe: SpoonacularRandomRecipe) {
   return {
     sourceId: recipe.id,
     title: recipe.title,
-    image: recipe.image ?? undefined,
+    image: safeImage(recipe.image),
   };
 }
 
@@ -23,7 +24,7 @@ export function mapSearchRecipeSummary(recipe: {
   return {
     sourceId: recipe.id,
     title: recipe.title,
-    image: recipe.image,
+    image: safeImage(recipe.image) ?? null,
   };
 }
 
@@ -31,7 +32,7 @@ export function mapStoredRecipeSummary(recipe: RecipeDocument) {
   return {
     sourceId: recipe.sourceId,
     title: recipe.base.title,
-    image: recipe.meta.image,
+    image: safeImage(recipe.meta?.image),
   };
 }
 
@@ -43,7 +44,7 @@ export function mapRecipePersistence(
     sourceId,
     base: {
       title: spoonacularRecipe.title,
-      summary: spoonacularRecipe.summary,
+      summary: sanitizeSummary(spoonacularRecipe.summary),
       instructions: spoonacularRecipe.analyzedInstructions.map((block) => ({
         name: block.name ?? '',
         steps: block.steps.map((step) => ({
@@ -57,11 +58,11 @@ export function mapRecipePersistence(
         original: ingredient.original,
         amount: ingredient.amount,
         unit: ingredient.unit,
-        image: ingredient.image,
+        image: safeImage(ingredient.image),
       })),
     },
     meta: {
-      image: spoonacularRecipe.image,
+      image: safeImage(spoonacularRecipe.image),
       readyInMinutes: spoonacularRecipe.readyInMinutes,
       servings: spoonacularRecipe.servings,
       vegetarian: spoonacularRecipe.vegetarian,
@@ -73,7 +74,7 @@ export function mapRecipePersistence(
       healthScore: spoonacularRecipe.healthScore,
       aggregateLikes: spoonacularRecipe.aggregateLikes,
       sourceName: spoonacularRecipe.sourceName,
-      sourceUrl: spoonacularRecipe.sourceUrl,
+      sourceUrl: safeHttpUrl(spoonacularRecipe.sourceUrl),
     },
   };
 }
@@ -94,14 +95,14 @@ export function mapRecipeIngredientsResponse(
     return {
       sourceId: recipe.sourceId,
       title: recipe.translations.es.title,
-      ingredients: recipe.translations.es.ingredients,
+      ingredients: mapIngredients(recipe.translations.es.ingredients),
     };
   }
 
   return {
     sourceId: recipe.sourceId,
     title: recipe.base.title,
-    ingredients: recipe.base.ingredients,
+    ingredients: mapIngredients(recipe.base.ingredients),
   };
 }
 
@@ -113,10 +114,20 @@ function buildRecipeDetailResponse(
   return {
     sourceId: recipe.sourceId,
     title: translation?.title ?? recipe.base.title,
-    summary: translation?.summary ?? recipe.base.summary,
-    instructions: translation?.instructions ?? recipe.base.instructions,
-    ingredients: translation?.ingredients ?? recipe.base.ingredients,
-    image: recipe.meta.image,
+    summary: sanitizeSummary(translation?.summary ?? recipe.base.summary),
+    instructions: (translation?.instructions ?? recipe.base.instructions).map(
+      (block) => ({
+        name: block.name,
+        steps: block.steps.map((step) => ({
+          number: step.number,
+          text: step.text,
+        })),
+      }),
+    ),
+    ingredients: mapIngredients(
+      translation?.ingredients ?? recipe.base.ingredients,
+    ),
+    image: safeImage(recipe.meta.image),
     readyInMinutes: recipe.meta.readyInMinutes,
     servings: recipe.meta.servings,
     vegetarian: recipe.meta.vegetarian,
@@ -128,7 +139,18 @@ function buildRecipeDetailResponse(
     healthScore: recipe.meta.healthScore,
     aggregateLikes: recipe.meta.aggregateLikes,
     sourceName: recipe.meta.sourceName,
-    sourceUrl: recipe.meta.sourceUrl,
+    sourceUrl: safeHttpUrl(recipe.meta.sourceUrl),
     lang,
   };
+}
+
+function mapIngredients(ingredients: RecipeDocument['base']['ingredients']) {
+  return ingredients.map((ingredient) => ({
+    id: ingredient.id,
+    name: ingredient.name,
+    original: ingredient.original,
+    amount: ingredient.amount,
+    unit: ingredient.unit,
+    image: safeImage(ingredient.image) ?? '',
+  }));
 }

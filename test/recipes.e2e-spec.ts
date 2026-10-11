@@ -111,4 +111,34 @@ describe('Recipes (e2e)', () => {
 
     expect(recipesServiceMock.getIngredientsForRecipes).not.toHaveBeenCalled();
   });
+
+  it('rejects mass assignment and oversized ingredient batches', async () => {
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    for (const body of [
+      { sourceIds: [1], translations: { es: { title: 'changed' } } },
+      { sourceIds: [true] },
+      { sourceIds: [{ $ne: null }] },
+      { sourceIds: Array.from({ length: 21 }, (_, i) => i + 1) },
+    ]) {
+      await request(server)
+        .post('/api/recipes/ingredients')
+        .send(body)
+        .expect(400);
+    }
+    expect(recipesServiceMock.getIngredientsForRecipes).not.toHaveBeenCalled();
+  });
+
+  it('validates cursor pagination without changing the array response', async () => {
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    recipesServiceMock.getAllRecipes.mockResolvedValue([]);
+    await request(server)
+      .get('/api/recipes?after=42&limit=20')
+      .expect(200)
+      .expect([]);
+    expect(recipesServiceMock.getAllRecipes).toHaveBeenCalledWith({
+      after: 42,
+      limit: 20,
+    });
+    await request(server).get('/api/recipes?limit=101').expect(400);
+  });
 });

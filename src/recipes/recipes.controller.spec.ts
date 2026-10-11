@@ -112,7 +112,7 @@ describe('RecipesController', () => {
   it('getAllRecipes debería delegar al service', async () => {
     recipesServiceMock.getAllRecipes.mockResolvedValue(['stored']);
 
-    const result = await controller.getAllRecipes();
+    const result = await controller.getAllRecipes({ limit: 50 });
 
     expect(recipesServiceMock.getAllRecipes).toHaveBeenCalled();
     expect(result).toEqual(['stored']);

@@ -101,6 +101,7 @@
             "in": "query",
             "description": "Search text used to query recipes.",
             "schema": {
+              "maxLength": 200,
               "example": "pasta",
               "type": "string"
             }
@@ -422,9 +423,36 @@
     },
     "/api/recipes": {
       "get": {
-        "description": "Returns recipes already persisted in the database.",
+        "description": "Returns stored recipes ordered by sourceId. Defaults to 50 items (maximum 100). Pass the last sourceId as after to fetch the next page.",
         "operationId": "RecipesController_getAllRecipes",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "after",
+            "required": false,
+            "in": "query",
+            "description": "Return source IDs greater than this cursor.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 9007199254740991,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Stored recipes list.",
@@ -861,6 +889,10 @@
           "title"
         ]
       },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
       "IngredientsRequestDto": {
         "type": "object",
         "properties": {
@@ -870,6 +902,7 @@
               123456
             ],
             "description": "Recipe source identifiers.",
+            "maxItems": 20,
             "type": "array",
             "items": {
               "type": "number"

@@ -173,7 +173,8 @@ export function ApiStoredRecipes() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get stored recipes',
-      description: 'Returns recipes already persisted in the database.',
+      description:
+        'Returns stored recipes ordered by sourceId. Defaults to 50 items (maximum 100). Pass the last sourceId as after to fetch the next page.',
     }),
     ApiOkResponse({
       description: 'Stored recipes list.',

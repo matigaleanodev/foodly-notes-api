@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsInt, Max, Min } from 'class-validator';
+import { numericInput } from '../../../common/validation/numeric-input';
 import { recipeSourceIdExample } from '../../../swagger/examples/recipes/recipe-ids.example';
 
 export class RecipeIdParamDto {
@@ -8,8 +9,9 @@ export class RecipeIdParamDto {
     example: recipeSourceIdExample,
     description: 'Spoonacular recipe identifier.',
   })
-  @Type(() => Number)
+  @Transform(({ value }: { value: unknown }) => numericInput(value))
   @IsInt()
   @Min(1)
+  @Max(Number.MAX_SAFE_INTEGER)
   id!: number;
 }

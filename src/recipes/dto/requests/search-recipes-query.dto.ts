@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { recipeLangExample } from '../../../swagger/examples/recipes/recipe-language.example';
 import { recipeSearchQueryExample } from '../../../swagger/examples/recipes/search-recipes.example';
 
@@ -16,10 +23,15 @@ export class SearchRecipesQueryDto {
   @ApiProperty({
     example: recipeSearchQueryExample,
     description: 'Search text used to query recipes.',
+    maxLength: 200,
   })
   @Transform(({ value }: { value: unknown }) => normalizeSearchQuery(value))
   @IsString()
   @MinLength(1)
+  @MaxLength(200)
+  @Matches(/^[^\p{Cc}]*$/u, {
+    message: 'q must not contain control characters',
+  })
   q!: string;
 
   @ApiPropertyOptional({

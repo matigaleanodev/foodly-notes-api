@@ -9,6 +9,14 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - name: Checkout repository
@@ -33,9 +41,12 @@ jobs:
         run: npm run test -- --ci --coverage
 
       - name: Run e2e tests
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
         run: npm run test:e2e
+
+      - name: Run MongoDB integration tests
+        env:
+          INTEGRATION_MONGO_URI: mongodb://127.0.0.1:27017/foodly_notes_ci
+        run: npm run test:integration
 
       - name: Build project
         run: npm run build

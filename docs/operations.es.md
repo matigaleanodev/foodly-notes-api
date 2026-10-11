@@ -30,7 +30,7 @@ Estos checks buscan responder una pregunta operativa acotada: si la API desplega
 ### Línea base de la API
 
 - `GET /api/health` devuelve `200`
-- `GET /openapi.json` devuelve `200`
+- `GET /openapi.json` devuelve `200` si Swagger está habilitado; `404` en producción por defecto
 
 ### MongoDB
 
@@ -97,6 +97,10 @@ El repositorio incluye un comando ejecutable para smoke checks:
 ```bash
 API_BASE_URL=https://api.foodlynotes.app npm run smoke
 ```
+
+Para producción con Swagger deshabilitado, agregar `SWAGGER_ENABLED=false`.
+Consultar [seguridad y despliegue](security.es.md) antes de actualizar: incluye
+Node 24, índices de MongoDB, HTTPS/proxy y límites de proveedores.
 
 Base URL por defecto:
 

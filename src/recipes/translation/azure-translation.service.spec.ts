@@ -3,6 +3,7 @@ import { AzureTranslationService } from './azure-translation.service';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { BadGatewayException } from '@nestjs/common';
+import { ProviderAccessService } from '../../security/provider-access.service';
 
 describe('AzureTranslationService', () => {
   let service: AzureTranslationService;
@@ -13,6 +14,12 @@ describe('AzureTranslationService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AzureTranslationService,
+        {
+          provide: ProviderAccessService,
+          useValue: {
+            run: (_provider: string, work: () => Promise<unknown>) => work(),
+          },
+        },
         {
           provide: HttpService,
           useValue: {

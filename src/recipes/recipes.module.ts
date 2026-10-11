@@ -29,7 +29,12 @@ import { AzureTranslationService } from './translation/azure-translation.service
         schema: TranslationEntrySchema,
       },
     ]),
-    HttpModule,
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 0,
+      maxContentLength: 1024 * 1024,
+      maxBodyLength: 256 * 1024,
+    }),
   ],
   controllers: [RecipesController],
   providers: [

@@ -68,6 +68,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable and no cached daily recipes exist.",
             "content": {
@@ -79,6 +89,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -159,6 +179,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable.",
             "content": {
@@ -170,6 +200,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -294,6 +334,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable. Translation provider failures fall back to English content.",
             "content": {
@@ -305,6 +355,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -399,6 +459,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable.",
             "content": {
@@ -410,6 +480,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -471,6 +551,26 @@
                     "image": "https://img.spoonacular.com/recipes/636598-556x370.jpg"
                   }
                 ]
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
               }
             }
           }
@@ -569,6 +669,16 @@
               }
             }
           },
+          "429": {
+            "description": "Request rate exceeded. Respect the Retry-After response header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
           "502": {
             "description": "Recipe provider is unavailable. Translation provider failures fall back to stored or English ingredient data.",
             "content": {
@@ -580,6 +690,16 @@
                   "statusCode": 502,
                   "message": "Recipe provider unavailable.",
                   "error": "Bad Gateway"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service busy or provider daily budget exhausted. Respect Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
                 }
               }
             }
@@ -615,28 +735,6 @@
           "status"
         ]
       },
-      "RecipeSummaryResponseDto": {
-        "type": "object",
-        "properties": {
-          "sourceId": {
-            "type": "number",
-            "example": 636598
-          },
-          "title": {
-            "type": "string",
-            "example": "Butternut Squash Souffle"
-          },
-          "image": {
-            "type": "object",
-            "example": "https://img.spoonacular.com/recipes/636598-556x370.jpg",
-            "nullable": true
-          }
-        },
-        "required": [
-          "sourceId",
-          "title"
-        ]
-      },
       "ErrorResponseDto": {
         "type": "object",
         "properties": {
@@ -660,6 +758,28 @@
           "statusCode",
           "message",
           "error"
+        ]
+      },
+      "RecipeSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "number",
+            "example": 636598
+          },
+          "title": {
+            "type": "string",
+            "example": "Butternut Squash Souffle"
+          },
+          "image": {
+            "type": "object",
+            "example": "https://img.spoonacular.com/recipes/636598-556x370.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "sourceId",
+          "title"
         ]
       },
       "RecipeInstructionStepDto": {

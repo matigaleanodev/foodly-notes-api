@@ -1,6 +1,6 @@
 {
   "name": "foodly-notes-api",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Matias Galeano",
   "private": true,
   "license": "UNLICENSED",
@@ -8,7 +8,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "generate:openapi": "node scripts/generate-openapi.js",
-    "generate:postman": "npm run generate:openapi && openapi2postmanv2 -s openapi.json -o postman-collection.json -p",
+    "generate:postman": "npm run generate:openapi && node scripts/generate-postman.js",
     "smoke": "node scripts/smoke-checks.js",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -22,7 +22,8 @@
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-integration.json --runInBand",
     "db:indexes": "node scripts/ensure-cache-indexes.js",
-    "prestart:prod": "node scripts/ensure-cache-indexes.js --apply"
+    "prestart:prod": "node scripts/ensure-cache-indexes.js --apply",
+    "test:postman": "node --test scripts/generate-postman.spec.js"
   },
   "dependencies": {
     "@nestjs/axios": "^12.0.1",
@@ -60,7 +61,6 @@
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
     "jest": "^30.0.0",
-    "openapi-to-postmanv2": "^6.0.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
@@ -111,12 +111,11 @@
     "node": ">=24.15.0"
   },
   "overrides": {
-    "js-yaml": "^5.4.3",
-    "postman-collection": {
-      "uuid": "^11.1.1"
-    },
-    "openapi-to-postmanv2": {
-      "yaml": "^2.9.1"
-    }
+    "js-yaml": "^5.4.3"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "unrs-resolver@1.12.2": true,
+    "@scarf/scarf@1.4.0": false
   }
 }

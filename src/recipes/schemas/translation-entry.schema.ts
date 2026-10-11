@@ -22,3 +22,7 @@ TranslationEntrySchema.index(
   { sourceText: 1, targetLang: 1 },
   { unique: true },
 );
+TranslationEntrySchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 30 * 24 * 60 * 60, name: 'translation_cache_expiry' },
+);

@@ -5,7 +5,7 @@ export type RecipeDocument = HydratedDocument<Recipe>;
 
 @Schema({ timestamps: true })
 export class Recipe {
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   sourceId!: number;
 
   @Prop({ default: 'spoonacular' })
@@ -126,3 +126,7 @@ export class Recipe {
 }
 
 export const RecipeSchema = SchemaFactory.createForClass(Recipe);
+RecipeSchema.index(
+  { sourceId: 1 },
+  { unique: true, name: 'recipe_source_unique' },
+);

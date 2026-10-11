@@ -14,11 +14,13 @@ describe('RecipesService', () => {
   const dailyRecipeModelMock = {
     findOne: jest.fn(),
     create: jest.fn(),
+    findOneAndUpdate: jest.fn(),
   };
 
   const recipeModelMock = {
     findOne: jest.fn(),
     create: jest.fn(),
+    findOneAndUpdate: jest.fn(),
     find: jest.fn(),
   };
 
@@ -114,11 +116,24 @@ describe('RecipesService', () => {
       },
     ]);
 
-    dailyRecipeModelMock.create.mockResolvedValue(undefined);
+    dailyRecipeModelMock.findOneAndUpdate.mockReturnValue({
+      exec: jest.fn().mockResolvedValue({
+        recipes: [{ sourceId: 1, title: 'Recipe', image: 'img' }],
+      }),
+    });
 
     const result = await service.getDailyRecipes('en');
 
-    expect(dailyRecipeModelMock.create).toHaveBeenCalled();
+    expect(dailyRecipeModelMock.findOneAndUpdate).toHaveBeenCalledWith(
+      { date: new Date().toISOString().slice(0, 10) },
+      {
+        $setOnInsert: {
+          date: new Date().toISOString().slice(0, 10),
+          recipes: [{ sourceId: 1, title: 'Recipe', image: 'img' }],
+        },
+      },
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
+    );
     expect(result.length).toBe(1);
   });
 

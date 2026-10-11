@@ -8,9 +8,12 @@ import {
   TranslationEntryDocument,
 } from '../schemas/translation-entry.schema';
 import { TranslationTargetLang } from './azure-translation.service';
+import { SingleFlight } from '../../common/single-flight';
+import { sanitizeSummary } from '../recipe-content';
 
 @Injectable()
 export class TranslationService {
+  private readonly flights = new SingleFlight<string, string[]>();
   constructor(
     @InjectModel(TranslationEntry.name)
     private readonly translationEntryModel: Model<TranslationEntryDocument>,
@@ -18,6 +21,15 @@ export class TranslationService {
   ) {}
 
   async translateTexts(
+    texts: string[],
+    targetLang: TranslationTargetLang,
+  ): Promise<string[]> {
+    return this.flights.run(JSON.stringify([targetLang, texts]), () =>
+      this.loadTranslations(texts, targetLang),
+    );
+  }
+
+  private async loadTranslations(
     texts: string[],
     targetLang: TranslationTargetLang,
   ): Promise<string[]> {
@@ -35,7 +47,9 @@ export class TranslationService {
     const cacheBySourceText = new Map(
       cacheEntries.map((entry) => [entry.sourceText, entry.translatedText]),
     );
-    const missingTexts = texts.filter((text) => !cacheBySourceText.has(text));
+    const missingTexts = [
+      ...new Set(texts.filter((text) => !cacheBySourceText.has(text))),
+    ];
 
     if (missingTexts.length) {
       const translatedTexts = await this.azure.translate(
@@ -49,7 +63,7 @@ export class TranslationService {
             .updateOne(
               { sourceText, targetLang },
               {
-                $set: {
+                $setOnInsert: {
                   sourceText,
                   targetLang,
                   translatedText: translatedTexts[index],
@@ -57,7 +71,16 @@ export class TranslationService {
               },
               { upsert: true },
             )
-            .exec(),
+            .exec()
+            .catch((error: unknown) => {
+              if (!(
+                typeof error === 'object' &&
+                error !== null &&
+                'code' in error &&
+                error.code === 11000
+              ))
+                throw error;
+            }),
         ),
       );
 
@@ -114,7 +137,7 @@ export class TranslationService {
 
     return {
       title,
-      summary,
+      summary: sanitizeSummary(summary),
       instructions: translatedInstructions,
       ingredients: translatedIngredients,
       translatedAt: new Date(),

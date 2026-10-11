@@ -125,7 +125,7 @@ describe('TranslationService', () => {
     expect(updateOneMock).toHaveBeenCalledWith(
       { sourceText: 'Chicken Soup', targetLang: 'es' },
       {
-        $set: {
+        $setOnInsert: {
           sourceText: 'Chicken Soup',
           targetLang: 'es',
           translatedText: 'Sopa de pollo',

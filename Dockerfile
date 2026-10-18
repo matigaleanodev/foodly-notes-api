@@ -1,4 +1,4 @@
-FROM node:24-alpine3.23 AS build
+FROM node:26-alpine3.23 AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --ignore-scripts
@@ -6,12 +6,12 @@ COPY nest-cli.json tsconfig*.json ./
 COPY src ./src
 RUN npm run build
 
-FROM node:24-alpine3.23 AS dependencies
+FROM node:26-alpine3.23 AS dependencies
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
-FROM node:24-alpine3.23 AS runtime
+FROM node:26-alpine3.23 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules

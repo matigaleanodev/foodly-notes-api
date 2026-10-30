@@ -8,7 +8,8 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 necesita un kernel compatible con TCMalloc (SERVER-121912).
+    runs-on: ubuntu-22.04
     services:
       mongodb:
         image: mongo:8.0
